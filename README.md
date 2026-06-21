@@ -20,4 +20,3 @@ Eklenti yüklendiğinde `EXILED/Configs/ProjectMER` dizinini oluşturacaktır. B
 
 # Emeği Geçenler
 - Eklentiyi geliştiren: [Michal78900](https://github.com/Michal78900)
-- Eklenti testleri: Souin
