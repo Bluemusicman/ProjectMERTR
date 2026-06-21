@@ -1,31 +1,39 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <LangVersion>12</LangVersion>
-    <TargetFramework>net4.8</TargetFramework>
+    <TargetFramework>net48</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <!-- SL_REFERENCES ortam değişkeni SCP:SL sunucu DLL'lerinin bulunduğu klasörü göstermelidir -->
   </PropertyGroup>
 
   <ItemGroup>
-    <Reference Include="UnityEngine" HintPath="$(SL_REFERENCES)\UnityEngine.dll" />
-    <Reference Include="UnityEngine.AnimationModule" HintPath="$(SL_REFERENCES)\UnityEngine.AnimationModule.dll" />
-    <Reference Include="UnityEngine.CoreModule" HintPath="$(SL_REFERENCES)\UnityEngine.CoreModule.dll" />
-    <Reference Include="UnityEngine.AssetBundleModule" HintPath="$(SL_REFERENCES)\UnityEngine.AssetBundleModule.dll" />
-    <Reference Include="UnityEngine.PhysicsModule" HintPath="$(SL_REFERENCES)\UnityEngine.PhysicsModule.dll" />
-    <Reference Include="Unity.TextMeshPro" HintPath="$(SL_REFERENCES)\Unity.TextMeshPro.dll" />
-    <Reference Include="Mirror" HintPath="$(SL_REFERENCES)\Mirror.dll" />
-    <Reference Include="Assembly-CSharp" HintPath="$(SL_REFERENCES)\Assembly-CSharp-Publicized.dll" />
-    <Reference Include="Assembly-CSharp-firstpass" HintPath="$(SL_REFERENCES)\Assembly-CSharp-firstpass.dll" />
-	  <Reference Include="CommandSystem.Core" HintPath="$(SL_REFERENCES)\CommandSystem.Core.dll" />
-    <Reference Include="YamlDotNet" HintPath="$(SL_REFERENCES)\YamlDotNet.dll" />
-    <Reference Include="NorthwoodLib" HintPath="$(SL_REFERENCES)\NorthwoodLib.dll" />
-    <Reference Include="LabApi" HintPath="$(SL_REFERENCES)\LabApi.dll" />
+    <!-- Oyun referansları -->
+    <Reference Include="UnityEngine"                     HintPath="$(SL_REFERENCES)\UnityEngine.dll" />
+    <Reference Include="UnityEngine.AnimationModule"     HintPath="$(SL_REFERENCES)\UnityEngine.AnimationModule.dll" />
+    <Reference Include="UnityEngine.CoreModule"          HintPath="$(SL_REFERENCES)\UnityEngine.CoreModule.dll" />
+    <Reference Include="UnityEngine.AssetBundleModule"   HintPath="$(SL_REFERENCES)\UnityEngine.AssetBundleModule.dll" />
+    <Reference Include="UnityEngine.PhysicsModule"       HintPath="$(SL_REFERENCES)\UnityEngine.PhysicsModule.dll" />
+    <Reference Include="Unity.TextMeshPro"               HintPath="$(SL_REFERENCES)\Unity.TextMeshPro.dll" />
+    <Reference Include="Mirror"                          HintPath="$(SL_REFERENCES)\Mirror.dll" />
+    <Reference Include="Assembly-CSharp"                 HintPath="$(SL_REFERENCES)\Assembly-CSharp-Publicized.dll" />
+    <Reference Include="Assembly-CSharp-firstpass"       HintPath="$(SL_REFERENCES)\Assembly-CSharp-firstpass.dll" />
+    <Reference Include="CommandSystem.Core"              HintPath="$(SL_REFERENCES)\CommandSystem.Core.dll" />
+    <Reference Include="YamlDotNet"                      HintPath="$(SL_REFERENCES)\YamlDotNet.dll" />
+    <Reference Include="NorthwoodLib"                    HintPath="$(SL_REFERENCES)\NorthwoodLib.dll" />
+    <!-- Exiled DLL'leri (sunucudan alınan) -->
+    <Reference Include="Exiled.API"                      HintPath="$(SL_REFERENCES)\Exiled.API.dll" />
+    <Reference Include="Exiled.Events"                   HintPath="$(SL_REFERENCES)\Exiled.Events.dll" />
+    <Reference Include="Exiled.Loader"                   HintPath="$(SL_REFERENCES)\Exiled.Loader.dll" />
   </ItemGroup>
 
   <ItemGroup>
+    <!-- Harmony yamaları için -->
     <PackageReference Include="Lib.Harmony" Version="2.3.6" />
+    <!-- Exiled 9.14.2 — ExMod tarafından yayınlanmaktadır -->
+    <PackageReference Include="ExMod.Exiled" Version="9.14.2" />
   </ItemGroup>
 
 </Project>

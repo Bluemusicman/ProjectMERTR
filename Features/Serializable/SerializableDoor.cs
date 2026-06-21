@@ -1,5 +1,5 @@
 using Interactables.Interobjects.DoorUtils;
-using LabApi.Features.Wrappers;
+using Exiled.API.Features;
 using Mirror;
 using ProjectMER.Features.Enums;
 using ProjectMER.Features.Extensions;
@@ -14,13 +14,6 @@ public class SerializableDoor : SerializableObject
 	public bool IsLocked { get; set; } = false;
 	public DoorPermissionFlags RequiredPermissions { get; set; } = DoorPermissionFlags.None;
 	public bool RequireAll { get; set; } = true;
-	public float Health { get; set; } = -1f;
-	public bool IsDestructible { get; set; } = false;
-	public float AutoCloseDelay { get; set; } = -1f;
-	public bool IsTeleport { get; set; } = false;
-	public List<string> TeleportTargets { get; set; } = [];
-	public float TeleportCooldown { get; set; } = 5f;
-	public string TeleportSoundEffect { get; set; } = "";
 
 	public override GameObject SpawnOrUpdateObject(Room? room = null, GameObject? instance = null)
 	{
@@ -46,9 +39,6 @@ public class SerializableDoor : SerializableObject
 		_prevType = DoorType;
 		SetupDoor(doorVariant);
 
-		var controller = doorVariant.gameObject.GetComponent<CustomDoorController>() ?? doorVariant.gameObject.AddComponent<CustomDoorController>();
-		controller.Init(this);
-
 		NetworkServer.UnSpawn(doorVariant.gameObject);
 		NetworkServer.Spawn(doorVariant.gameObject);
 
@@ -60,10 +50,6 @@ public class SerializableDoor : SerializableObject
 		doorVariant.NetworkTargetState = IsOpen;
 		doorVariant.ServerChangeLock(DoorLockReason.SpecialDoorFeature, IsLocked);
 		doorVariant.RequiredPermissions = new DoorPermissionsPolicy(RequiredPermissions, RequireAll);
-		if (doorVariant is BreakableDoor breakable && Health > 0)
-		{
-			breakable.RemainingHp = Health;
-		}
 	}
 
 	private DoorVariant DoorPrefab

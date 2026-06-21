@@ -1,116 +1,161 @@
 using System.Text.RegularExpressions;
-using LabApi.Events.Arguments.WarheadEvents;
-using LabApi.Events.CustomHandlers;
-using LabApi.Features.Wrappers;
+using Exiled.Events.EventArgs.Warhead;
 using MEC;
 using NorthwoodLib.Pools;
 using ProjectMER.Configs;
 using ProjectMER.Features;
+using ServerHandlers = Exiled.Events.Handlers.Server;
+using WarheadHandlers = Exiled.Events.Handlers.Warhead;
 
 namespace ProjectMER.Events.Handlers.Internal;
 
-public class ActionOnEventHandlers : CustomEventsHandler
+/// <summary>
+/// Yapılandırma dosyasında tanımlanan olay bazlı eylemleri yöneten işleyici sınıfı.
+/// Exiled 9.14.2 sürümünde += / -= abonelik yöntemi kullanılır.
+/// </summary>
+public class ActionOnEventHandlers
 {
-	private static Config Config => ProjectMER.Singleton.Config!;
+    private static Config Config => ProjectMER.Singleton.Config!;
 
-	public override void OnServerWaitingForPlayers() => Timing.CallDelayed(0.1f, () => HandleActionList(Config.OnWaitingForPlayers));
-	public override void OnServerRoundStarted()
-	{
-		HandleActionList(Config.OnRoundStarted);
-		Features.MapRotator.MapRotatorManager.CheckAndRotateMaps();
-	}
-	public override void OnServerLczDecontaminationStarted() => HandleActionList(Config.OnLczDecontaminationStarted);
-	public override void OnWarheadStarted(WarheadStartedEventArgs ev) => HandleActionList(Config.OnWarheadStarted);
-	public override void OnWarheadStopped(WarheadStoppedEventArgs ev) => HandleActionList(Config.OnWarheadStopped);
-	public override void OnWarheadDetonated(WarheadDetonatedEventArgs ev) => HandleActionList(Config.OnWarheadDetonated);
+    /// <summary>
+    /// Exiled olaylarına abone olur.
+    /// </summary>
+    public void Kaydet()
+    {
+        ServerHandlers.WaitingForPlayers  += OnWaitingForPlayers;
+        ServerHandlers.RoundStarted       += OnRoundStarted;
+        ServerHandlers.LczDecontaminationStarted += OnLczDecontaminationStarted;
+        WarheadHandlers.Starting          += OnWarheadStarted;
+        WarheadHandlers.Stopping          += OnWarheadStopped;
+        WarheadHandlers.Detonating        += OnWarheadDetonated;
+    }
 
-	private void HandleActionList(List<string> list)
-	{
-		foreach (string element in list)
-		{
-			string[] actionSplit = element.Split(':');
-			string action = actionSplit[0];
-			string argument = actionSplit[1];
+    /// <summary>
+    /// Exiled olaylarından aboneliği kaldırır.
+    /// </summary>
+    public void Kaldir()
+    {
+        ServerHandlers.WaitingForPlayers  -= OnWaitingForPlayers;
+        ServerHandlers.RoundStarted       -= OnRoundStarted;
+        ServerHandlers.LczDecontaminationStarted -= OnLczDecontaminationStarted;
+        WarheadHandlers.Starting          -= OnWarheadStarted;
+        WarheadHandlers.Stopping          -= OnWarheadStopped;
+        WarheadHandlers.Detonating        -= OnWarheadDetonated;
+    }
 
-			switch (action.ToLowerInvariant())
-			{
-				case "load":
-				case "l":
-					{
-						List<string> allMaps = ListPool<string>.Shared.Rent(Directory.GetFiles(ProjectMER.MapsDir).Select(Path.GetFileNameWithoutExtension));
-						HandleMapLoading(argument, allMaps);
-						ListPool<string>.Shared.Return(allMaps);
-						continue;
-					}
+    // ---------- Olay işleyicileri ----------
 
-				case "unload":
-				case "unl":
-					{
-						List<string> allMaps = ListPool<string>.Shared.Rent(MapUtils.LoadedMaps.Keys);
-						HandleMapUnloading(argument, allMaps);
-						ListPool<string>.Shared.Return(allMaps);
-						continue;
-					}
+    private void OnWaitingForPlayers()
+        => Timing.CallDelayed(0.1f, () => HandleActionList(Config.OnWaitingForPlayers));
 
-				case "console":
-				case "cs":
-					{
-						Server.RunCommand(argument);
-						continue;
-					}
+    private void OnRoundStarted()
+        => HandleActionList(Config.OnRoundStarted);
 
-				default:
-					{
-						Logger.Error($"Bilinmeyen eylem: {action}");
-						continue;
-					}
-			}
-		}
-	}
+    private void OnLczDecontaminationStarted()
+        => HandleActionList(Config.OnLczDecontaminationStarted);
 
-	private void HandleMapLoading(string argument, List<string> allMaps)
-	{
-		string[] orSplit = argument.Split('|', '|');
-		string[] andSplit = argument.Split(',');
+    private void OnWarheadStarted(StartingEventArgs _)
+        => HandleActionList(Config.OnWarheadStarted);
 
-		if (orSplit.Length > 1 || andSplit.Length > 1)
-		{
-			if (andSplit.Length > orSplit.Length)
-				andSplit.ForEach(x => HandleMapLoading(x, allMaps));
-			else
-				HandleMapLoading(orSplit.RandomItem(), allMaps);
+    private void OnWarheadStopped(StoppingEventArgs _)
+        => HandleActionList(Config.OnWarheadStopped);
 
-			return;
-		}
+    private void OnWarheadDetonated(DetonatingEventArgs _)
+        => HandleActionList(Config.OnWarheadDetonated);
 
-		foreach (string mapName in allMaps)
-		{
-			if (Regex.IsMatch(mapName, WildCardToRegular(argument)))
-				MapUtils.LoadMap(mapName);
-		}
-	}
+    // ---------- Yardımcı yöntemler ----------
 
-	private void HandleMapUnloading(string argument, List<string> allMaps)
-	{
-		string[] orSplit = argument.Split('|', '|');
-		string[] andSplit = argument.Split(',');
+    private void HandleActionList(List<string> liste)
+    {
+        foreach (string element in liste)
+        {
+            string[] eylemParcalari = element.Split(':');
+            string eylem = eylemParcalari[0];
+            string arguman = eylemParcalari[1];
 
-		if (orSplit.Length > 1 || andSplit.Length > 1)
-		{
-			if (andSplit.Length > orSplit.Length)
-				andSplit.ForEach(x => HandleMapLoading(x, allMaps));
-			else
-				HandleMapLoading(orSplit.RandomItem(), allMaps);
+            switch (eylem.ToLowerInvariant())
+            {
+                case "load":
+                case "l":
+                {
+                    List<string> tumHaritalar = ListPool<string>.Shared.Rent(
+                        Directory.GetFiles(ProjectMER.MapsDir).Select(Path.GetFileNameWithoutExtension)!
+                    );
+                    HandleMapLoading(arguman, tumHaritalar);
+                    ListPool<string>.Shared.Return(tumHaritalar);
+                    continue;
+                }
 
-			return;
-		}
+                case "unload":
+                case "unl":
+                {
+                    List<string> yuklenenHaritalar = ListPool<string>.Shared.Rent(MapUtils.LoadedMaps.Keys);
+                    HandleMapUnloading(arguman, yuklenenHaritalar);
+                    ListPool<string>.Shared.Return(yuklenenHaritalar);
+                    continue;
+                }
 
-		foreach (string mapName in allMaps)
-		{
-			if (Regex.IsMatch(mapName, WildCardToRegular(argument)))
-				MapUtils.UnloadMap(mapName);
-		}
-	}
+                case "console":
+                case "cs":
+                {
+                    // Exiled'da konsol komutu çalıştırma
+                    Exiled.API.Features.Server.RunCommand(arguman);
+                    continue;
+                }
 
-	private static string WildCardToRegular(string value) => "^" + Regex.Escape(value).Replace("\\?", ".").Replace("\\*", ".*") + "$";
+                default:
+                {
+                    Exiled.API.Features.Log.Error($"Bilinmeyen eylem: {eylem}");
+                    continue;
+                }
+            }
+        }
+    }
+
+    private void HandleMapLoading(string arguman, List<string> tumHaritalar)
+    {
+        string[] veyaParcalari = arguman.Split('|', '|');
+        string[] veParcalari   = arguman.Split(',');
+
+        if (veyaParcalari.Length > 1 || veParcalari.Length > 1)
+        {
+            if (veParcalari.Length > veyaParcalari.Length)
+                veParcalari.ForEach(x => HandleMapLoading(x, tumHaritalar));
+            else
+                HandleMapLoading(veyaParcalari.RandomItem(), tumHaritalar);
+
+            return;
+        }
+
+        foreach (string haritaAdi in tumHaritalar)
+        {
+            if (Regex.IsMatch(haritaAdi, WildCardToRegular(arguman)))
+                MapUtils.LoadMap(haritaAdi);
+        }
+    }
+
+    private void HandleMapUnloading(string arguman, List<string> tumHaritalar)
+    {
+        string[] veyaParcalari = arguman.Split('|', '|');
+        string[] veParcalari   = arguman.Split(',');
+
+        if (veyaParcalari.Length > 1 || veParcalari.Length > 1)
+        {
+            if (veParcalari.Length > veyaParcalari.Length)
+                veParcalari.ForEach(x => HandleMapLoading(x, tumHaritalar));
+            else
+                HandleMapLoading(veyaParcalari.RandomItem(), tumHaritalar);
+
+            return;
+        }
+
+        foreach (string haritaAdi in tumHaritalar)
+        {
+            if (Regex.IsMatch(haritaAdi, WildCardToRegular(arguman)))
+                MapUtils.UnloadMap(haritaAdi);
+        }
+    }
+
+    private static string WildCardToRegular(string deger)
+        => "^" + Regex.Escape(deger).Replace("\\?", ".").Replace("\\*", ".*") + "$";
 }

@@ -2,7 +2,7 @@ using InventorySystem.Items;
 using InventorySystem.Items.Firearms;
 using InventorySystem.Items.Firearms.Attachments;
 using InventorySystem.Items.Firearms.Modules;
-using LabApi.Features.Wrappers;
+using Exiled.API.Features;
 using ProjectMER.Features.Enums;
 using ProjectMER.Features.Extensions;
 using ProjectMER.Features.Objects;
@@ -125,7 +125,7 @@ public class ToolGunItem
 
 		if (ToolGunHandler.TryGetMapObject(player, out MapEditorObject mapEditorObject) && DeleteMode)
 		{
-			ToolGunHandler.DeleteObject(mapEditorObject, player);
+			ToolGunHandler.DeleteObject(mapEditorObject);
 			return;
 		}
 

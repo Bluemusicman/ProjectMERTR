@@ -1,141 +1,157 @@
-global using Logger = LabApi.Features.Console.Logger;
+// Exiled sürümünde global Logger yerine Exiled'ın Log sınıfı kullanılır.
+// Kullanım: Log.Info(...), Log.Warn(...), Log.Error(...), Log.Debug(...)
 
+using Exiled.API.Features;
 using HarmonyLib;
-using LabApi.Events.CustomHandlers;
-using LabApi.Loader.Features.Paths;
-using LabApi.Loader.Features.Plugins;
 using MEC;
 using ProjectMER.Configs;
 using ProjectMER.Events.Handlers.Internal;
-using ProjectMER.Features;
+using System.IO;
+using System.Threading;
 
 namespace ProjectMER;
 
+/// <summary>
+/// ProjectMER'in Exiled 9.14.2 sürümündeki ana eklenti sınıfı.
+/// </summary>
 public class ProjectMER : Plugin<Config>
 {
-	private Harmony _harmony;
-	private FileSystemWatcher _mapFileSystemWatcher;
+    private Harmony _harmony = null!;
+    private FileSystemWatcher? _mapFileSystemWatcher;
 
-	public static ProjectMER Singleton { get; private set; }
+    /// <summary>
+    /// Eklentinin tekil örneğini alır.
+    /// </summary>
+    public static ProjectMER Singleton { get; private set; } = null!;
 
-	/// <summary>
-	/// Gets the MapEditorReborn parent folder path.
-	/// </summary>
-	public static string PluginDir { get; private set; }
+    /// <summary>
+    /// Eklentinin ana klasör yolunu alır.
+    /// </summary>
+    public static string PluginDir { get; private set; } = string.Empty;
 
-	/// <summary>
-	/// Gets the folder path in which the maps are stored.
-	/// </summary>
-	public static string MapsDir { get; private set; }
+    /// <summary>
+    /// Haritaların saklandığı klasör yolunu alır.
+    /// </summary>
+    public static string MapsDir { get; private set; } = string.Empty;
 
-	/// <summary>
-	/// Gets the folder path in which the schematics are stored.
-	/// </summary>
-	public static string SchematicsDir { get; private set; }
+    /// <summary>
+    /// Şematiklerin saklandığı klasör yolunu alır.
+    /// </summary>
+    public static string SchematicsDir { get; private set; } = string.Empty;
 
-	public GenericEventsHandler GenericEventsHandler { get; } = new();
+    // Olay işleyicisi örnekleri
+    public GenericEventsHandler GenericEventsHandler { get; private set; } = null!;
+    public ToolGunEventsHandler ToolGunEventsHandler { get; private set; } = null!;
+    public ActionOnEventHandlers ActionOnEventHandlers { get; private set; } = null!;
+    public PickupEventsHandler PickupEventsHandler { get; private set; } = null!;
 
-	public ToolGunEventsHandler ToolGunEventsHandler { get; } = new();
+    public override string Name => "ProjectMER";
+    public override string Author => "souin";
+    public override string Prefix => "ProjectMER";
+    public override Version Version => new(2025, 11, 2, 1);
+    public override Version RequiredExiledVersion => new(9, 14, 2);
 
-	public ActionOnEventHandlers AcionOnEventHandlers { get; } = new();
+    public override void OnEnabled()
+    {
+        Singleton = this;
 
-	public PickupEventsHandler PickupEventsHandler { get; } = new();
+        // Harmony yamalarını uygula
+        _harmony = new Harmony($"souin.projectMER-{DateTime.Now.Ticks}");
+        _harmony.PatchAll();
 
-	public override void Enable()
-	{
-		Singleton = this;
-		_harmony = new Harmony($"michal78900.mapEditorReborn-{DateTime.Now.Ticks}");
-		_harmony.PatchAll();
+        // Klasör yollarını ayarla
+        PluginDir   = Path.Combine(Paths.Configs, "ProjectMER");
+        MapsDir     = Path.Combine(PluginDir, "Maps");
+        SchematicsDir = Path.Combine(PluginDir, "Schematics");
 
-		PluginDir = Path.Combine(PathManager.Configs.FullName, "ProjectMER");
-		MapsDir = Path.Combine(PluginDir, "Maps");
-		SchematicsDir = Path.Combine(PluginDir, "Schematics");
+        // Gerekli klasörleri oluştur
+        if (!Directory.Exists(PluginDir))
+        {
+            Log.Warn("Eklenti klasörü bulunamadı. Oluşturuluyor...");
+            Directory.CreateDirectory(PluginDir);
+        }
 
-		if (!Directory.Exists(PluginDir))
-		{
-			Logger.Warn("Eklenti klasörü bulunamadı. Oluşturuluyor...");
-			Directory.CreateDirectory(PluginDir);
-		}
+        if (!Directory.Exists(MapsDir))
+        {
+            Log.Warn("Harita klasörü bulunamadı. Oluşturuluyor...");
+            Directory.CreateDirectory(MapsDir);
+        }
 
-		if (!Directory.Exists(MapsDir))
-		{
-			Logger.Warn("Harita klasörü bulunamadı. Oluşturuluyor...");
-			Directory.CreateDirectory(MapsDir);
-		}
+        if (!Directory.Exists(SchematicsDir))
+        {
+            Log.Warn("Şematik klasörü bulunamadı. Oluşturuluyor...");
+            Directory.CreateDirectory(SchematicsDir);
+        }
 
-		if (!Directory.Exists(SchematicsDir))
-		{
-			Logger.Warn("Şematik klasörü bulunamadı. Oluşturuluyor...");
-			Directory.CreateDirectory(SchematicsDir);
-		}
+        // Olay işleyicilerini oluştur ve kaydet
+        GenericEventsHandler = new GenericEventsHandler();
+        ToolGunEventsHandler = new ToolGunEventsHandler();
+        ActionOnEventHandlers = new ActionOnEventHandlers();
+        PickupEventsHandler = new PickupEventsHandler();
 
-		CustomHandlersManager.RegisterEventsHandler(GenericEventsHandler);
-		CustomHandlersManager.RegisterEventsHandler(ToolGunEventsHandler);
-		CustomHandlersManager.RegisterEventsHandler(AcionOnEventHandlers);
-		CustomHandlersManager.RegisterEventsHandler(PickupEventsHandler);
+        GenericEventsHandler.Kaydet();
+        ToolGunEventsHandler.Kaydet();
+        ActionOnEventHandlers.Kaydet();
+        PickupEventsHandler.Kaydet();
 
-		_harmony = new Harmony($"michal78900.mapEditorReborn-{DateTime.Now.Ticks}");
-		_harmony.PatchAll();
+        // DosyaSistemİzleyici etkinleştirme
+        if (Config!.EnableFileSystemWatcher)
+        {
+            _mapFileSystemWatcher = new FileSystemWatcher(MapsDir)
+            {
+                NotifyFilter      = NotifyFilters.LastWrite,
+                Filter            = "*.yml",
+                EnableRaisingEvents = true,
+            };
 
-		if (Config!.EnableFileSystemWatcher)
-		{
-			_mapFileSystemWatcher = new FileSystemWatcher(MapsDir)
-			{
-				NotifyFilter = NotifyFilters.LastWrite,
-				Filter = "*.yml",
-				EnableRaisingEvents = true,
-			};
+            _mapFileSystemWatcher.Changed += OnMapFileChanged;
 
-			_mapFileSystemWatcher.Changed += OnMapFileChanged;
+            Log.Debug("DosyaSistemİzleyici etkinleştirildi!");
+        }
 
-			Logger.Debug("DosyaSistemİzleyici etkinleştirildi!");
-		}
+        base.OnEnabled();
+    }
 
-		Features.AutoBackup.AutoBackupManager.Start();
-	}
+    public override void OnDisabled()
+    {
+        // Olay işleyicilerinin aboneliğini kaldır
+        GenericEventsHandler?.Kaldir();
+        ToolGunEventsHandler?.Kaldir();
+        ActionOnEventHandlers?.Kaldir();
+        PickupEventsHandler?.Kaldir();
 
-	private void OnMapFileChanged(object _, FileSystemEventArgs ev)
-	{
-		string mapName = ev.Name.Split('.')[0];
-		if (!MapUtils.LoadedMaps.ContainsKey(mapName))
-			return;
+        // Harmony yamalarını geri al
+        _harmony?.UnpatchAll(_harmony.Id);
 
-		Timing.CallDelayed(0.01f, () =>
-		{
-			try
-			{
-				MapUtils.LoadMap(mapName);
-			}
-			catch (Exception e)
-			{
-				Logger.Error(e);
-			}
-		});
-	}
+        // DosyaSistemİzleyici'yi temizle
+        if (_mapFileSystemWatcher != null)
+        {
+            _mapFileSystemWatcher.Changed -= OnMapFileChanged;
+            _mapFileSystemWatcher.Dispose();
+            _mapFileSystemWatcher = null;
+        }
 
-	public override void Disable()
-	{
-		Singleton = null!;
-		_harmony.UnpatchAll();
+        Singleton = null!;
 
-		CustomHandlersManager.UnregisterEventsHandler(GenericEventsHandler);
-		CustomHandlersManager.UnregisterEventsHandler(ToolGunEventsHandler);
-		CustomHandlersManager.UnregisterEventsHandler(AcionOnEventHandlers);
-		CustomHandlersManager.UnregisterEventsHandler(PickupEventsHandler);
+        base.OnDisabled();
+    }
 
-		_harmony.UnpatchAll();
-		_mapFileSystemWatcher?.Dispose();
+    private void OnMapFileChanged(object _, FileSystemEventArgs ev)
+    {
+        string mapName = ev.Name!.Split('.')[0];
+        if (!Features.MapUtils.LoadedMaps.ContainsKey(mapName))
+            return;
 
-		Features.AutoBackup.AutoBackupManager.Stop();
-	}
-
-	public override string Name => "ProjectMER";
-
-	public override string Description => "MER LabAPI - Harita Editörü Yeniden Doğdu";
-
-	public override string Author => "souin";
-
-	public override Version Version => new Version(2025, 11, 2, 1);
-
-	public override Version RequiredApiVersion => new Version(1, 1, 7, 0);
+        Timing.CallDelayed(0.01f, () =>
+        {
+            try
+            {
+                Features.MapUtils.LoadMap(mapName);
+            }
+            catch (Exception e)
+            {
+                Log.Error(e);
+            }
+        });
+    }
 }

@@ -1,79 +1,119 @@
+using Exiled.API.Features;
+using Exiled.API.Features.Items;
+using Exiled.API.Features.Pickups;
+using Exiled.Events.EventArgs.Player;
 using InventorySystem.Items;
 using InventorySystem.Items.Firearms.Attachments;
 using InventorySystem.Items.Firearms.Modules;
-using LabApi.Events.Arguments.PlayerEvents;
-using LabApi.Events.CustomHandlers;
-using LabApi.Features.Wrappers;
 using ProjectMER.Features.Objects;
-using FirearmPickup = LabApi.Features.Wrappers.FirearmPickup;
+using PlayerHandlers = Exiled.Events.Handlers.Player;
+using FirearmPickup = Exiled.API.Features.Pickups.FirearmPickup;
 
 namespace ProjectMER.Events.Handlers.Internal;
 
-public class PickupEventsHandler : CustomEventsHandler
+/// <summary>
+/// Eşya alıp bırakma ve özel buton mekanizmalarını yöneten işleyici sınıfı.
+/// Exiled 9.14.2 sürümünde += / -= abonelik yöntemi kullanılır.
+/// </summary>
+public class PickupEventsHandler
 {
-	internal static readonly Dictionary<ushort, SchematicObject> ButtonPickups = [];
-	internal static readonly Dictionary<ushort, int> PickupUsesLeft = [];
+    /// <summary>
+    /// Buton olarak tanımlanan eşyaların seri → şematik eşleştirmesi.
+    /// </summary>
+    internal static readonly Dictionary<ushort, SchematicObject> ButtonPickups = [];
 
-	public override void OnPlayerSearchingPickup(PlayerSearchingPickupEventArgs ev)
-	{
-		if (!ButtonPickups.TryGetValue(ev.Pickup.Serial, out SchematicObject schematic))
-			return;
+    /// <summary>
+    /// Sınırlı sayıda alınabilir eşyaların kalan kullanım sayısı.
+    /// </summary>
+    internal static readonly Dictionary<ushort, int> PickupUsesLeft = [];
 
-		ev.IsAllowed = false;
-		Schematic.OnButtonInteracted(new(ev.Pickup, ev.Player, schematic));
-	}
+    /// <summary>
+    /// Exiled olaylarına abone olur.
+    /// </summary>
+    public void Kaydet()
+    {
+        PlayerHandlers.SearchingPickup  += OnPlayerSearchingPickup;
+        PlayerHandlers.PickingUpItem    += OnPlayerPickingUpItem;
+        PlayerHandlers.PickingUpAmmo    += OnPlayerPickingUpAmmo;
+    }
 
-	public override void OnPlayerPickingUpItem(PlayerPickingUpItemEventArgs ev)
-	{
-		if (!ev.Pickup.Transform.TryGetComponentInParent(out MapEditorObject _))
-			return;
+    /// <summary>
+    /// Exiled olaylarından aboneliği kaldırır.
+    /// </summary>
+    public void Kaldir()
+    {
+        PlayerHandlers.SearchingPickup  -= OnPlayerSearchingPickup;
+        PlayerHandlers.PickingUpItem    -= OnPlayerPickingUpItem;
+        PlayerHandlers.PickingUpAmmo    -= OnPlayerPickingUpAmmo;
+    }
 
-		if (!PickupUsesLeft.ContainsKey(ev.Pickup.Serial))
-			return;
+    // ---------- Olay işleyicileri ----------
 
-		if (--PickupUsesLeft[ev.Pickup.Serial] == 0)
-		{
-			PickupUsesLeft.Remove(ev.Pickup.Serial);
-			return;
-		}
+    private void OnPlayerSearchingPickup(SearchingPickupEventArgs ev)
+    {
+        // Butona basma mekanizması — özel eşyayla etkileşim şematik olayını tetikler
+        if (!ButtonPickups.TryGetValue(ev.Pickup.Serial, out SchematicObject sematik))
+            return;
 
-		ev.IsAllowed = false;
-		ev.Pickup.IsInUse = false;
+        ev.IsAllowed = false;
+        Schematic.OnButtonInteracted(new(ev.Pickup, ev.Player, sematik));
+    }
 
-		Item item = ev.Player.AddItem(ev.Pickup.Type, ItemAddReason.PickedUp)!;
-		if (ev.Pickup is not FirearmPickup firearmPickup || item is not FirearmItem firearmItem)
-			return;
+    private void OnPlayerPickingUpItem(PickingUpItemEventArgs ev)
+    {
+        // Harita nesnesinin çocuğu olan eşya mı?
+        if (!ev.Pickup.Base.Transform.TryGetComponentInParent(out MapEditorObject _))
+            return;
 
-		firearmItem.Base.ApplyAttachmentsCode(firearmPickup.AttachmentCode, false);
-		if (firearmItem.Base.TryGetModule(out MagazineModule magazineModule))
-		{
-			magazineModule.MagazineInserted = true;
-			magazineModule.AmmoStored = magazineModule.AmmoMax;
-			magazineModule.ServerResyncData();
-		}
-		else if (firearmItem.Base.TryGetModule(out CylinderAmmoModule cylinderAmmoModule))
-		{
-			cylinderAmmoModule.ServerModifyAmmo(cylinderAmmoModule.AmmoMax);
-			cylinderAmmoModule.ServerResync();
-		}
-	}
+        if (!PickupUsesLeft.ContainsKey(ev.Pickup.Serial))
+            return;
 
-	public override void OnPlayerPickingUpAmmo(PlayerPickingUpAmmoEventArgs ev)
-	{
-		if (!ev.Pickup.Transform.TryGetComponentInParent(out MapEditorObject _))
-			return;
+        if (--PickupUsesLeft[ev.Pickup.Serial] == 0)
+        {
+            PickupUsesLeft.Remove(ev.Pickup.Serial);
+            return;
+        }
 
-		if (!PickupUsesLeft.ContainsKey(ev.Pickup.Serial))
-			return;
+        // Kalan kullanım hakkı varsa yeniden bırak ve envantere ekle
+        ev.IsAllowed = false;
+        ev.Pickup.Base.InUse = false;
 
-		if (--PickupUsesLeft[ev.Pickup.Serial] == 0)
-		{
-			PickupUsesLeft.Remove(ev.Pickup.Serial);
-			return;
-		}
+        Item? esya = ev.Player.AddItem(ev.Pickup.Type);
+        if (ev.Pickup is not FirearmPickup silahYeri || esya is not Firearm silah)
+            return;
 
-		ev.IsAllowed = false;
-		ev.Pickup.IsInUse = false;
-		ev.Player.AddAmmo(ev.AmmoType, ev.AmmoAmount);
-	}
+        // Ateşli silahın ek parça kodunu ve mermisini ayarla
+        silah.Base.ApplyAttachmentsCode(silahYeri.AttachmentsCode, false);
+        if (silah.Base.TryGetModule(out MagazineModule sarjorModulu))
+        {
+            sarjorModulu.MagazineInserted = true;
+            sarjorModulu.AmmoStored = sarjorModulu.AmmoMax;
+            sarjorModulu.ServerResyncData();
+        }
+        else if (silah.Base.TryGetModule(out CylinderAmmoModule silindirModulu))
+        {
+            silindirModulu.ServerModifyAmmo(silindirModulu.AmmoMax);
+            silindirModulu.ServerResync();
+        }
+    }
+
+    private void OnPlayerPickingUpAmmo(PickingUpAmmoEventArgs ev)
+    {
+        // Harita nesnesinin çocuğu olan mermi eşyası mı?
+        if (!ev.Pickup.Base.Transform.TryGetComponentInParent(out MapEditorObject _))
+            return;
+
+        if (!PickupUsesLeft.ContainsKey(ev.Pickup.Serial))
+            return;
+
+        if (--PickupUsesLeft[ev.Pickup.Serial] == 0)
+        {
+            PickupUsesLeft.Remove(ev.Pickup.Serial);
+            return;
+        }
+
+        ev.IsAllowed = false;
+        ev.Pickup.Base.InUse = false;
+        ev.Player.AddAmmo(ev.AmmoType, (ushort)ev.Amount);
+    }
 }

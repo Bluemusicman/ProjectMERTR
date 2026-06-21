@@ -1,7 +1,8 @@
-using LabApi.Features.Wrappers;
+using Exiled.API.Features;
 using MEC;
 using ProjectMER.Features.Serializable;
 using ProjectMER.Features.ToolGun;
+using System.Linq;
 using UnityEngine;
 
 namespace ProjectMER.Features.Objects;
@@ -69,7 +70,7 @@ public class MapEditorObject : MonoBehaviour
 	}
 
 	/// <summary>
-	/// Destroys the object.
+	/// Nesneyi yok eder.
 	/// </summary>
 	public void Destroy()
 	{

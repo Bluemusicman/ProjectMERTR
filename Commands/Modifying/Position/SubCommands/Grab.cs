@@ -1,6 +1,6 @@
 using CommandSystem;
-using LabApi.Features.Permissions;
-using LabApi.Features.Wrappers;
+using Exiled.Permissions.Extensions;
+using Exiled.API.Features;
 using MEC;
 using Mirror;
 using ProjectMER.Features.Objects;
@@ -50,13 +50,11 @@ public class Grab : ICommand
 			Room room = mapEditorObject.Room;
 			mapEditorObject.Base.Position = room.Name == MapGeneration.RoomName.Outside ? mapEditorObject.transform.position : mapEditorObject.Room.Transform.InverseTransformPoint(mapEditorObject.transform.position);
 			mapEditorObject.UpdateObjectAndCopies();
-			UndoRedo.UndoRedoManager.SaveAfterState(player, mapEditorObject);
 
 			response = "Bırakıldı";
 			return true;
 		}
 
-		UndoRedo.UndoRedoManager.SaveBeforeState(mapEditorObject.Id, mapEditorObject.MapName, mapEditorObject.Base);
 		GrabbingPlayers.Add(player, Timing.RunCoroutine(GrabbingCoroutine(player, mapEditorObject)));
 
 		response = "Tutuldu";
@@ -95,7 +93,6 @@ public class Grab : ICommand
 		{
 			mapEditorObject.Base.Position = mapEditorObject.Room.Transform.InverseTransformPoint(mapEditorObject.transform.position);
 			mapEditorObject.UpdateObjectAndCopies();
-			UndoRedo.UndoRedoManager.SaveAfterState(player, mapEditorObject);
 		}
 	}
 

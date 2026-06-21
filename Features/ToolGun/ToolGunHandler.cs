@@ -1,4 +1,4 @@
-using LabApi.Features.Wrappers;
+using Exiled.API.Features;
 using MapGeneration;
 using ProjectMER.Configs;
 using ProjectMER.Features.Enums;
@@ -19,12 +19,12 @@ public static class ToolGunHandler
 		if (!Raycast(player, out RaycastHit hit))
 			return;
 
-		CreateObject(hit.point, objectType, schematicName, player);
+		CreateObject(hit.point, objectType, schematicName);
 		if (Config.AutoSelect)
 			SelectObject(player, MapUtils.UntitledMap.SpawnedObjects.LastOrDefault());
 	}
 
-	public static void CreateObject(Vector3 position, ToolGunObjectType objectType, string schematicName = "", Player? player = null)
+	public static void CreateObject(Vector3 position, ToolGunObjectType objectType, string schematicName = "")
 	{
 		Room room = RoomExtensions.GetRoomAtPosition(position);
 
@@ -65,13 +65,7 @@ public static class ToolGunHandler
 		}
 
 		if (map.TryAddElement(id, serializableObject))
-		{
 			map.SpawnObject(id, serializableObject);
-			if (player != null)
-			{
-				UndoRedo.UndoRedoManager.RecordAction(player, UndoRedo.UndoRedoActionType.Create, map.Name, id, null, serializableObject);
-			}
-		}
 
 		foreach (MapEditorObject mapEditorObject in map.SpawnedObjects)
 		{
@@ -82,21 +76,13 @@ public static class ToolGunHandler
 		}
 	}
 
-	public static void DeleteObject(MapEditorObject mapEditorObject, Player? player = null)
+	public static void DeleteObject(MapEditorObject mapEditorObject)
 	{
 		IndicatorObject.TryDestroyIndicator(mapEditorObject);
 
 		MapSchematic map = MapUtils.LoadedMaps[mapEditorObject.MapName];
-		object? beforeState = UndoRedo.UndoRedoManager.CloneState(mapEditorObject.Base);
-
 		if (map.TryRemoveElement(mapEditorObject.Id))
-		{
 			map.DestroyObject(mapEditorObject.Id);
-			if (player != null && beforeState != null)
-			{
-				UndoRedo.UndoRedoManager.RecordAction(player, UndoRedo.UndoRedoActionType.Delete, map.Name, mapEditorObject.Id, beforeState, null);
-			}
-		}
 	}
 
 	public static bool TryGetMapObject(Player player, out MapEditorObject mapEditorObject)

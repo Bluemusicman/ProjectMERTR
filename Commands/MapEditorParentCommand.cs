@@ -1,8 +1,7 @@
 using System.Text;
 using CommandSystem;
-using LabApi.Features.Permissions;
+using Exiled.Permissions.Extensions;
 using NorthwoodLib.Pools;
-using ProjectMER.Commands.History;
 using ProjectMER.Commands.Map;
 using ProjectMER.Commands.Modifying;
 using ProjectMER.Commands.Modifying.Position;
@@ -36,8 +35,6 @@ public class MapEditorParentCommand : ParentCommand
 		RegisterCommand(new List());
 		RegisterCommand(new Indicators());
 		RegisterCommand(new Merge());
-		RegisterCommand(new Undo());
-		RegisterCommand(new Redo());
 
 		RegisterCommand(new Position());
 		RegisterCommand(new Rotation());

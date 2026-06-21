@@ -1,5 +1,5 @@
 using CommandSystem;
-using LabApi.Features.Permissions;
+using Exiled.Permissions.Extensions;
 using NorthwoodLib.Pools;
 using ProjectMER.Features;
 using ProjectMER.Features.Serializable;

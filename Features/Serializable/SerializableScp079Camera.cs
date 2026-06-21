@@ -1,5 +1,7 @@
-﻿using AdminToys;
-using LabApi.Features.Wrappers;
+using System;
+using System.Linq;
+using AdminToys;
+using Exiled.API.Features;
 using MapGeneration;
 using Mirror;
 using ProjectMER.Features.Extensions;
@@ -38,14 +40,23 @@ public class SerializableScp079Camera : SerializableObject
 
 		cameraVariant.NetworkMovementSmoothing = 60;
 		cameraVariant.NetworkLabel = Label;
-		cameraVariant.NetworkRoom = room == null ? LabApi.Features.Wrappers.Room.Get(RoomName.Outside).First().Base : room.Base;
+
+		// Exiled'da Room.List ile Outside odasını alıyoruz
+		if (room == null)
+		{
+			Room? outside = Room.List.FirstOrDefault(r => r.Identifier != null && r.Identifier.Name == RoomName.Outside);
+			cameraVariant.NetworkRoom = outside?.Identifier;
+		}
+		else
+		{
+			cameraVariant.NetworkRoom = room.Identifier;
+		}
 
 		if (instance == null)
 			NetworkServer.Spawn(cameraVariant.gameObject);
 
 		return cameraVariant.gameObject;
 	}
-
 
 	private Scp079CameraToy CameraPrefab
 	{

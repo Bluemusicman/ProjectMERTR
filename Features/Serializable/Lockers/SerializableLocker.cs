@@ -1,4 +1,9 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using Exiled.API.Features;
 using InventorySystem.Items.Pickups;
+using MapGeneration;
 using MapGeneration.Distributors;
 using MEC;
 using Mirror;
@@ -6,9 +11,9 @@ using ProjectMER.Features.Enums;
 using ProjectMER.Features.Extensions;
 using UnityEngine;
 
-using Room = LabApi.Features.Wrappers.Room;
-using LabApiLocker = LabApi.Features.Wrappers.Locker;
-using LapApiLockerChamber = LabApi.Features.Wrappers.LockerChamber;
+// Exiled Locker wrapper
+using ExiledLocker = Exiled.API.Features.Lockers.Locker;
+using ExiledLockerChamber = Exiled.API.Features.Lockers.LockerChamber;
 
 namespace ProjectMER.Features.Serializable.Lockers;
 
@@ -16,9 +21,9 @@ public class SerializableLocker : SerializableObject
 {
 	public LockerType LockerType { get; set; } = LockerType.PedestalScp500;
 
-	public List<SerializableLockerLoot> Loot { get; set; } = [];
+	public List<SerializableLockerLoot> Loot { get; set; } = new();
 
-	public List<SerializableLockerChamber> Chambers { get; set; } = [];
+	public List<SerializableLockerChamber> Chambers { get; set; } = new();
 
 	public override GameObject? SpawnOrUpdateObject(Room? room = null, GameObject? instance = null)
 	{
@@ -36,25 +41,47 @@ public class SerializableLocker : SerializableObject
 			structurePositionSync.Network_rotationY = (sbyte)Mathf.RoundToInt(locker.transform.rotation.eulerAngles.y / 5.625f);
 		}
 
-		LabApiLocker labApiLocker = LabApiLocker.Get(locker);
-		if (LockerType != _prevType)
-			SetDefaultSettings(labApiLocker);
+		ExiledLocker? exiledLocker = ExiledLocker.Get(locker);
+		if (exiledLocker == null)
+		{
+			NetworkServer.UnSpawn(locker.gameObject);
+			NetworkServer.Spawn(locker.gameObject);
+			return locker.gameObject;
+		}
 
-		labApiLocker.ClearLockerLoot();
+		if (LockerType != _prevType)
+			SetDefaultSettings(exiledLocker);
+
+		// Loot ayarları — Exiled üzerinden locker loot yönetimi
+		// (Exiled API'da AddLockerLoot bulunmayabilir; doğrudan base API kullanılıyor)
+		foreach (LockerLoot lockerLoot in locker.Loot)
+		{
+			lockerLoot.RemainingUses = 0;
+		}
+
 		foreach (SerializableLockerLoot loot in Loot)
 		{
-			labApiLocker.AddLockerLoot(loot.TargetItem, loot.RemainingUses, loot.ProbabilityPoints, loot.MinPerChamber, loot.MaxPerChamber);
+			for (int idx = 0; idx < locker.Loot.Length; idx++)
+			{
+				if (locker.Loot[idx].TargetItem == loot.TargetItem)
+				{
+					locker.Loot[idx].RemainingUses = loot.RemainingUses;
+					locker.Loot[idx].ProbabilityPoints = loot.ProbabilityPoints;
+					locker.Loot[idx].MinPerChamber = loot.MinPerChamber;
+					locker.Loot[idx].MaxPerChamber = loot.MaxPerChamber;
+					break;
+				}
+			}
 		}
 
 		int i = 0;
-		labApiLocker.ClearAllChambers();
-		foreach (LapApiLockerChamber chamber in labApiLocker.Chambers)
+		foreach (ExiledLockerChamber chamber in exiledLocker.Chambers)
 		{
 			if (i > Chambers.Count - 1)
 				break;
 
-			chamber.AcceptableItems = Chambers[i].AcceptableItems.ToArray();
-			chamber.RequiredPermissions = Chambers[i].RequiredPermissions;
+			chamber.Base.AcceptableItems = Chambers[i].AcceptableItems.ToArray();
+			chamber.Base.RequiredPermissions = Chambers[i].RequiredPermissions;
 			i++;
 		}
 
@@ -70,30 +97,31 @@ public class SerializableLocker : SerializableObject
 					rigidbody.isKinematic = false;
 			}
 
-			int i = 0;
-			foreach (LapApiLockerChamber chamber in labApiLocker.Chambers)
+			int j = 0;
+			foreach (ExiledLockerChamber chamber in exiledLocker.Chambers)
 			{
-				chamber.IsOpen = Chambers[i].IsOpen;
-				i++;
+				if (j > Chambers.Count - 1) break;
+				chamber.IsOpen = Chambers[j].IsOpen;
+				j++;
 			}
 		});
 
 		return locker.gameObject;
 	}
 
-	private void SetDefaultSettings(LabApiLocker labApiLocker)
+	private void SetDefaultSettings(ExiledLocker exiledLocker)
 	{
 		Loot.Clear();
 		Chambers.Clear();
 
-		foreach (LockerLoot loot in labApiLocker.Loot)
+		foreach (LockerLoot loot in exiledLocker.Base.Loot)
 		{
 			Loot.Add(new SerializableLockerLoot(loot.TargetItem, loot.RemainingUses, loot.MaxPerChamber, loot.ProbabilityPoints, loot.MinPerChamber));
 		}
 
-		foreach (LapApiLockerChamber chamber in labApiLocker.Chambers)
+		foreach (ExiledLockerChamber chamber in exiledLocker.Chambers)
 		{
-			Chambers.Add(new SerializableLockerChamber(chamber.AcceptableItems, chamber.IsOpen, chamber.RequiredPermissions));
+			Chambers.Add(new SerializableLockerChamber(chamber.Base.AcceptableItems, chamber.IsOpen, chamber.Base.RequiredPermissions));
 		}
 	}
 

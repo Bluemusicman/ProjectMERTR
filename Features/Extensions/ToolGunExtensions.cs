@@ -1,5 +1,5 @@
 using InventorySystem.Items;
-using LabApi.Features.Wrappers;
+using Exiled.API.Features.Items;
 using ProjectMER.Features.ToolGun;
 
 namespace ProjectMER.Features.Extensions;

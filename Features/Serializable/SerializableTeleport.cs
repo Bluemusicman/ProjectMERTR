@@ -1,9 +1,6 @@
 using System;
-using System.Collections.Generic;
 using AdminToys;
-using Interactables.Interobjects.DoorUtils;
-using LabApi.Features.Wrappers;
-using PlayerRoles;
+using Exiled.API.Features;
 using ProjectMER.Features.Extensions;
 using ProjectMER.Features.Interfaces;
 using ProjectMER.Features.Objects;
@@ -14,29 +11,9 @@ namespace ProjectMER.Features.Serializable;
 
 public class SerializableTeleport : SerializableObject, IIndicatorDefinition
 {
-	/// <summary>Işınlama hedef ID'leri.</summary>
 	public List<string> Targets { get; set; } = [];
 
-	/// <summary>Işınlama bekleme süresi (saniye).</summary>
 	public float Cooldown { get; set; } = 5f;
-
-	/// <summary>Bu ışınlayıcıyı kullanabilecek roller. Boşsa herkese açık.</summary>
-	public List<RoleTypeId> AllowedRoles { get; set; } = [];
-
-	/// <summary>Bu ışınlayıcıyı kullanamayacak roller.</summary>
-	public List<RoleTypeId> BlockedRoles { get; set; } = [];
-
-	/// <summary>Işınlanmak için kart gerekip gerekmediği.</summary>
-	public bool RequireKeycard { get; set; } = false;
-
-	/// <summary>Kabul edilen kart yetkileri (RequireKeycard=true iken). Boşsa herhangi bir kart yeterli.</summary>
-	public List<DoorPermissionFlags> AllowedKeycards { get; set; } = [];
-
-	/// <summary>Işınlanma anında oynatılacak ses ID'si (SCP:SL SoundID). -1 = ses yok.</summary>
-	public int TeleportSoundEffect { get; set; } = -1;
-
-	/// <summary>Işınlanamayan oyuncuya gösterilecek mesaj.</summary>
-	public string DeniedMessage { get; set; } = "";
 
 	public override GameObject? SpawnOrUpdateObject(Room? room = null, GameObject? instance = null)
 	{

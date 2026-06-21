@@ -1,4 +1,4 @@
-using LabApi.Features.Wrappers;
+using Exiled.API.Features;
 using NorthwoodLib.Pools;
 using ProjectMER.Features.Extensions;
 using ProjectMER.Features.Objects;

@@ -1,6 +1,6 @@
-﻿using CommandSystem;
-using LabApi.Features.Permissions;
-using LabApi.Features.Wrappers;
+using CommandSystem;
+using Exiled.Permissions.Extensions;
+using Exiled.API.Features;
 using ProjectMER.Commands.Modifying.Position.SubCommands;
 
 namespace ProjectMER.Commands.Modifying.Position;

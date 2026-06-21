@@ -3,8 +3,8 @@ using System.ComponentModel;
 using System.Reflection;
 using System.Text;
 using CommandSystem;
-using LabApi.Features.Permissions;
-using LabApi.Features.Wrappers;
+using Exiled.Permissions.Extensions;
+using Exiled.API.Features;
 using NorthwoodLib.Pools;
 using ProjectMER.Features;
 using ProjectMER.Features.Extensions;
@@ -54,8 +54,6 @@ public class Modify : ICommand
 		object instance = mapEditorObject.GetType().GetField("Base").GetValue(mapEditorObject);
 		List<PropertyInfo> properties = instance.GetType().GetModifiableProperties().ToList();
 
-		UndoRedo.UndoRedoManager.SaveBeforeState(mapEditorObject.Id, mapEditorObject.MapName, instance);
-
 		if (arguments.Count == 0)
 		{
 			StringBuilder sb = StringBuilderPool.Shared.Rent();
@@ -101,7 +99,6 @@ public class Modify : ICommand
 			return false;
 
 		mapEditorObject.UpdateObjectAndCopies();
-		UndoRedo.UndoRedoManager.SaveAfterState(player, mapEditorObject);
 		response = "You've successfully modified the object!";
 		return true;
 
@@ -144,7 +141,6 @@ public class Modify : ICommand
 
 			oldMap.Reload();
 			newMap.Reload();
-			UndoRedo.UndoRedoManager.SaveAfterState(player, mapEditorObject);
 			response = "Nesnenin haritasını başarıyla değiştirdiniz!";
 			return true;
 		}
@@ -168,11 +164,6 @@ public class Modify : ICommand
 			mapEditorObject.Map.TryAddElement(newId, mapEditorObject.Base);
 			mapEditorObject.Map.TryRemoveElement(mapEditorObject.Id);
 			mapEditorObject.Map.Reload();
-			var newObject = mapEditorObject.Map.SpawnedObjects.Find(x => x.Id == newId);
-			if (newObject != null)
-			{
-				UndoRedo.UndoRedoManager.SaveAfterState(player, newObject);
-			}
 			response = "Nesnenin ID'sini başarıyla değiştirdiniz!";
 			return true;
 		}

@@ -1,24 +1,34 @@
-using LabApi.Events.Arguments.Interfaces;
-using LabApi.Features.Wrappers;
+using System;
+using Exiled.API.Features;
 using ProjectMER.Events.Arguments.Interfaces;
 using ProjectMER.Features.Objects;
 
 namespace ProjectMER.Events.Arguments;
 
-public class ButtonInteractedEventArgs : EventArgs, IPickupEvent, IPlayerEvent, ISchematicEvent
+/// <summary>
+/// Bir oyuncu butona dokunduğunda tetiklenen olay argümanı.
+/// </summary>
+public class ButtonInteractedEventArgs : EventArgs, ISchematicEvent
 {
-	public ButtonInteractedEventArgs(Pickup button, Player player, SchematicObject schematic)
-	{
-		Button = button;
-		Player = player;
-		Schematic = schematic;
-	}
+    public ButtonInteractedEventArgs(Pickup button, Player player, SchematicObject schematic)
+    {
+        Button    = button;
+        Player    = player;
+        Schematic = schematic;
+    }
 
-	public Pickup Button { get; }
+    /// <summary>
+    /// Tıklanan eşya (buton).
+    /// </summary>
+    public Pickup Button { get; }
 
-	public Pickup Pickup => Button;
+    /// <summary>
+    /// Etkileşimde bulunan oyuncu.
+    /// </summary>
+    public Player Player { get; }
 
-	public Player Player { get; }
-
-	public SchematicObject Schematic { get; }
+    /// <summary>
+    /// İlgili şematik nesne.
+    /// </summary>
+    public SchematicObject Schematic { get; }
 }

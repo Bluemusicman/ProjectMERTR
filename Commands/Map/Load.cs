@@ -1,5 +1,5 @@
 using CommandSystem;
-using LabApi.Features.Permissions;
+using Exiled.Permissions.Extensions;
 using ProjectMER.Features;
 
 namespace ProjectMER.Commands.Map;

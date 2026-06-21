@@ -1,6 +1,6 @@
 using CommandSystem;
-using LabApi.Features.Permissions;
-using LabApi.Features.Wrappers;
+using Exiled.Permissions.Extensions;
+using Exiled.API.Features;
 using ProjectMER.Features.Objects;
 using ProjectMER.Features.ToolGun;
 
@@ -37,7 +37,7 @@ public class Delete : ICommand
 			string id = arguments.At(0);
 			if (ToolGunHandler.TryGetObjectById(id, out MapEditorObject idObject))
 			{
-				ToolGunHandler.DeleteObject(idObject, player);
+				ToolGunHandler.DeleteObject(idObject);
 				response = "Nesneyi başarıyla sildiniz!";
 				return true;
 			}
@@ -48,7 +48,7 @@ public class Delete : ICommand
 
 		if (ToolGunHandler.TryGetMapObject(player, out MapEditorObject mapEditorObject))
 		{
-			ToolGunHandler.DeleteObject(mapEditorObject, player);
+			ToolGunHandler.DeleteObject(mapEditorObject);
 			response = "Nesneyi başarıyla sildiniz!";
 
 			return true;

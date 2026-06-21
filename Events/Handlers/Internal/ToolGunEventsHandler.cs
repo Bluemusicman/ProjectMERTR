@@ -1,74 +1,112 @@
-using LabApi.Events.Arguments.PlayerEvents;
-using LabApi.Events.CustomHandlers;
-using LabApi.Features.Wrappers;
+using Exiled.API.Features;
+using Exiled.Events.EventArgs.Player;
 using MEC;
 using ProjectMER.Features.Extensions;
 using ProjectMER.Features.Objects;
 using ProjectMER.Features.ToolGun;
+using PlayerHandlers = Exiled.Events.Handlers.Player;
+using ServerHandlers = Exiled.Events.Handlers.Server;
 
 namespace ProjectMER.Events.Handlers.Internal;
 
-public class ToolGunEventsHandler : CustomEventsHandler
+/// <summary>
+/// ToolGun (Araç Silahı) mekanizmalarını ve GUI'yi yöneten işleyici sınıfı.
+/// Exiled 9.14.2 sürümünde += / -= abonelik yöntemi kullanılır.
+/// </summary>
+public class ToolGunEventsHandler
 {
-	private static CoroutineHandle _toolGunCoroutine;
+    private static CoroutineHandle _toolGunCoroutine;
 
-	public override void OnServerRoundStarted()
-	{
-		Timing.KillCoroutines(_toolGunCoroutine);
-		_toolGunCoroutine = Timing.RunCoroutine(ToolGunGUI());
-	}
+    /// <summary>
+    /// Exiled olaylarına abone olur.
+    /// </summary>
+    public void Kaydet()
+    {
+        ServerHandlers.RoundStarted        += OnRoundStarted;
+        PlayerHandlers.DryFiringWeapon     += OnPlayerDryFiringWeapon;
+        PlayerHandlers.ReloadingWeapon     += OnPlayerReloadingWeapon;
+        PlayerHandlers.DroppingItem        += OnPlayerDroppingItem;
+    }
 
-	private static IEnumerator<float> ToolGunGUI()
-	{
-		while (true)
-		{
-			yield return Timing.WaitForSeconds(0.1f);
+    /// <summary>
+    /// Exiled olaylarından aboneliği kaldırır.
+    /// </summary>
+    public void Kaldir()
+    {
+        ServerHandlers.RoundStarted        -= OnRoundStarted;
+        PlayerHandlers.DryFiringWeapon     -= OnPlayerDryFiringWeapon;
+        PlayerHandlers.ReloadingWeapon     -= OnPlayerReloadingWeapon;
+        PlayerHandlers.DroppingItem        -= OnPlayerDroppingItem;
+    }
 
-			foreach (Player player in Player.List)
-			{
-				if (!player.CurrentItem.IsToolGun(out ToolGunItem _) && !ToolGunHandler.TryGetSelectedMapObject(player, out MapEditorObject _))
-					continue;
+    // ---------- Olay işleyicileri ----------
 
-				string hud;
-				try
-				{
-					hud = ToolGunUI.GetHintHUD(player);
-				}
-				catch (Exception e)
-				{
-					Logger.Error(e);
-					hud = "HATA: Sunucu konsolunu kontrol edin";
-				}
+    private void OnRoundStarted()
+    {
+        // Önceki GUI coroutine'ini durdur ve yenisini başlat
+        Timing.KillCoroutines(_toolGunCoroutine);
+        _toolGunCoroutine = Timing.RunCoroutine(ToolGunGUI());
+    }
 
-				player.SendHint(hud, 0.25f);
-			}
-		}
-	}
+    /// <summary>
+    /// ToolGun kullanan oyuncular için 0.1 saniyede bir HUD günceller.
+    /// </summary>
+    private static IEnumerator<float> ToolGunGUI()
+    {
+        while (true)
+        {
+            yield return Timing.WaitForSeconds(0.1f);
 
-	public override void OnPlayerDryFiringWeapon(PlayerDryFiringWeaponEventArgs ev)
-	{
-		if (!ev.Weapon.IsToolGun(out ToolGunItem toolGun))
-			return;
+            foreach (Player oyuncu in Player.List)
+            {
+                // ToolGun tutan veya seçili nesnesi olan oyunculara HUD gönder
+                if (!oyuncu.CurrentItem.IsToolGun(out ToolGunItem _) &&
+                    !ToolGunHandler.TryGetSelectedMapObject(oyuncu, out MapEditorObject _))
+                    continue;
 
-		ev.IsAllowed = false;
-		toolGun.Shot(ev.Player);
-	}
+                string hud;
+                try
+                {
+                    hud = ToolGunUI.GetHintHUD(oyuncu);
+                }
+                catch (Exception e)
+                {
+                    Log.Error(e);
+                    hud = "HATA: Sunucu konsolunu kontrol edin";
+                }
 
-	public override void OnPlayerReloadingWeapon(PlayerReloadingWeaponEventArgs ev)
-	{
-		if (!ev.Weapon.IsToolGun(out ToolGunItem toolGun))
-			return;
+                oyuncu.ShowHint(hud, 0.25f);
+            }
+        }
+    }
 
-		ev.IsAllowed = false;
-		toolGun.SelectedObjectToSpawn--;
-	}
+    private void OnPlayerDryFiringWeapon(DryFiringWeaponEventArgs ev)
+    {
+        // ToolGun boş ateş → nesne oluştur/sil/seç
+        if (!ev.Firearm.IsToolGun(out ToolGunItem toolGun))
+            return;
 
-	public override void OnPlayerDroppingItem(PlayerDroppingItemEventArgs ev)
-	{
-		if (!ev.Item.IsToolGun(out ToolGunItem toolGun))
-			return;
+        ev.IsAllowed = false;
+        toolGun.Shot(ev.Player);
+    }
 
-		ev.IsAllowed = false;
-		toolGun.SelectedObjectToSpawn++;
-	}
+    private void OnPlayerReloadingWeapon(ReloadingWeaponEventArgs ev)
+    {
+        // ToolGun doldurma → önceki nesne türüne geç
+        if (!ev.Firearm.IsToolGun(out ToolGunItem toolGun))
+            return;
+
+        ev.IsAllowed = false;
+        toolGun.SelectedObjectToSpawn--;
+    }
+
+    private void OnPlayerDroppingItem(DroppingItemEventArgs ev)
+    {
+        // ToolGun bırakma → sonraki nesne türüne geç
+        if (!ev.Item.IsToolGun(out ToolGunItem toolGun))
+            return;
+
+        ev.IsAllowed = false;
+        toolGun.SelectedObjectToSpawn++;
+    }
 }

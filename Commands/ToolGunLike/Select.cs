@@ -1,6 +1,6 @@
 using CommandSystem;
-using LabApi.Features.Permissions;
-using LabApi.Features.Wrappers;
+using Exiled.Permissions.Extensions;
+using Exiled.API.Features;
 using ProjectMER.Features;
 using ProjectMER.Features.Objects;
 using ProjectMER.Features.Serializable;

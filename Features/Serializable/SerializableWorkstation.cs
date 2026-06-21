@@ -1,5 +1,5 @@
 using InventorySystem.Items.Firearms.Attachments;
-using LabApi.Features.Wrappers;
+using Exiled.API.Features;
 using MapGeneration.Distributors;
 using Mirror;
 using ProjectMER.Features.Extensions;

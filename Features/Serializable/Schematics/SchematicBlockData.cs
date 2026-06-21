@@ -1,6 +1,6 @@
 using AdminToys;
 using InventorySystem.Items.Firearms.Attachments;
-using LabApi.Features.Wrappers;
+using Exiled.API.Features;
 using ProjectMER.Events.Handlers.Internal;
 using ProjectMER.Features.Enums;
 using ProjectMER.Features.Extensions;

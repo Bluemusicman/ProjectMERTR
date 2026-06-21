@@ -1,5 +1,5 @@
 using AdminToys;
-using LabApi.Features.Wrappers;
+using Exiled.API.Features;
 using Mirror;
 using ProjectMER.Events.Arguments;
 using ProjectMER.Events.Handlers;

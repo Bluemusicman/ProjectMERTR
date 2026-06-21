@@ -1,6 +1,6 @@
 using CommandSystem;
-using LabApi.Features.Permissions;
-using LabApi.Features.Wrappers;
+using Exiled.Permissions.Extensions;
+using Exiled.API.Features;
 using ProjectMER.Features.Objects;
 using ProjectMER.Features.ToolGun;
 
@@ -42,10 +42,8 @@ public class Bring : ICommand
 			return false;
 		}
 
-		UndoRedo.UndoRedoManager.SaveBeforeState(mapEditorObject.Id, mapEditorObject.MapName, mapEditorObject.Base);
 		mapEditorObject.Base.Position = mapEditorObject.Room.Transform.InverseTransformPoint(player.Position);
 		mapEditorObject.UpdateObjectAndCopies();
-		UndoRedo.UndoRedoManager.SaveAfterState(player, mapEditorObject);
 
 		response = mapEditorObject.Base.Position.ToString("F3");
 		return true;

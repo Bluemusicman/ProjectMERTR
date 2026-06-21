@@ -3,15 +3,24 @@ using ProjectMER.Features.Objects;
 
 namespace ProjectMER.Events.Arguments;
 
+/// <summary>
+/// Bir şematik nesne yok edildiğinde tetiklenen olay argümanı.
+/// </summary>
 public class SchematicDestroyedEventArgs : EventArgs, ISchematicEvent
 {
-	public SchematicDestroyedEventArgs(SchematicObject schematic, string name)
-	{
-		Schematic = schematic;
-		Name = name;
-	}
+    public SchematicDestroyedEventArgs(SchematicObject sematik, string ad)
+    {
+        Schematic = sematik;
+        Name      = ad;
+    }
 
-	public SchematicObject Schematic { get; }
+    /// <summary>
+    /// Yok edilen şematik nesne.
+    /// </summary>
+    public SchematicObject Schematic { get; }
 
-	public string Name { get; }
+    /// <summary>
+    /// Şematiğin adı.
+    /// </summary>
+    public string Name { get; }
 }

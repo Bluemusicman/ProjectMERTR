@@ -1,6 +1,6 @@
 using System.Reflection;
 using System.Text;
-using LabApi.Features.Wrappers;
+using Exiled.API.Features;
 using NorthwoodLib.Pools;
 using ProjectMER.Features.Enums;
 using ProjectMER.Features.Extensions;

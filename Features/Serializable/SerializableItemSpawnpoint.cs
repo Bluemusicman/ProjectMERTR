@@ -1,7 +1,7 @@
 using InventorySystem.Items.Firearms.Attachments;
 using InventorySystem.Items.Firearms.Modules;
 using InventorySystem.Items.Pickups;
-using LabApi.Features.Wrappers;
+using Exiled.API.Features;
 using MEC;
 using ProjectMER.Events.Handlers.Internal;
 using ProjectMER.Features.Extensions;

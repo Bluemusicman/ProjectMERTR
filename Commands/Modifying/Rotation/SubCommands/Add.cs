@@ -1,6 +1,6 @@
 using CommandSystem;
-using LabApi.Features.Permissions;
-using LabApi.Features.Wrappers;
+using Exiled.Permissions.Extensions;
+using Exiled.API.Features;
 using ProjectMER.Features.Objects;
 using ProjectMER.Features.ToolGun;
 using UnityEngine;
@@ -46,10 +46,8 @@ public class Add : ICommand
 
 		if (arguments.Count >= 3 && TryGetVector(arguments.At(0), arguments.At(1), arguments.At(2), out Vector3 newRotation))
 		{
-			UndoRedo.UndoRedoManager.SaveBeforeState(mapEditorObject.Id, mapEditorObject.MapName, mapEditorObject.Base);
 			mapEditorObject.Base.Rotation += newRotation;
 			mapEditorObject.UpdateObjectAndCopies();
-			UndoRedo.UndoRedoManager.SaveAfterState(player, mapEditorObject);
 
 			response = mapEditorObject.Base.Rotation.ToString("F3");
 			return true;
