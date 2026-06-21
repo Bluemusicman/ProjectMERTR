@@ -22,7 +22,7 @@ public class Set : ICommand
 	/// <inheritdoc/>
 	public bool Execute(ArraySegment<string> arguments, ICommandSender sender, out string response)
 	{
-		if (!sender.HasAnyPermission($"mpr.scale"))
+		if (!sender.CheckPermission($"mpr.scale"))
 		{
 			response = $"Bu komutu yürütmek için yetkiniz yok. Gerekli yetki: mpr.scale";
 			return false;

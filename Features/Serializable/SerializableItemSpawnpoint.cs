@@ -2,6 +2,7 @@ using InventorySystem.Items.Firearms.Attachments;
 using InventorySystem.Items.Firearms.Modules;
 using InventorySystem.Items.Pickups;
 using Exiled.API.Features;
+using Exiled.API.Features.Pickups;
 using MEC;
 using ProjectMER.Events.Handlers.Internal;
 using ProjectMER.Features.Extensions;
@@ -41,7 +42,10 @@ public class SerializableItemSpawnpoint : SerializableObject, IIndicatorDefiniti
 
 		for (int i = 0; i < NumberOfItems; i++)
 		{
-			Pickup pickup = Pickup.Create(ItemType, position, rotation, Scale)!;
+			Pickup pickup = Pickup.Create(ItemType)!;
+			pickup.Position = position;
+			pickup.Rotation = rotation;
+			pickup.Scale = Scale;
 
 			pickup.Transform.parent = itemSpawnPoint.transform;
 			if (Weight != -1)
@@ -58,7 +62,7 @@ public class SerializableItemSpawnpoint : SerializableObject, IIndicatorDefiniti
 				Timing.CallDelayed(0.01f, () =>
 				{
 					firearmPickup.Base.OnDistributed();
-					firearmPickup.AttachmentCode = uint.TryParse(AttachmentsCode, out uint attachmentsCode) ? attachmentsCode : AttachmentsUtils.GetRandomAttachmentsCode(firearmPickup.Type);
+					firearmPickup.Attachments = uint.TryParse(AttachmentsCode, out uint attachmentsCode) ? attachmentsCode : AttachmentsUtils.GetRandomAttachmentsCode(firearmPickup.Type);
 					if (firearmPickup.Base.Template.TryGetModule(out MagazineModule magazineModule))
 						magazineModule.ServerResyncData();
 				});

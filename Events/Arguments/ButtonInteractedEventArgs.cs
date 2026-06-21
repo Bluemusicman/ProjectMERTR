@@ -1,5 +1,6 @@
 using System;
 using Exiled.API.Features;
+using Exiled.API.Features.Pickups;
 using ProjectMER.Events.Arguments.Interfaces;
 using ProjectMER.Features.Objects;
 

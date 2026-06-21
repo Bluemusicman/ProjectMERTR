@@ -23,7 +23,7 @@ public class ToolGunEventsHandler
     public void Kaydet()
     {
         ServerHandlers.RoundStarted        += OnRoundStarted;
-        PlayerHandlers.DryFiringWeapon     += OnPlayerDryFiringWeapon;
+        PlayerHandlers.DryfiringWeapon     += OnPlayerDryFiringWeapon;
         PlayerHandlers.ReloadingWeapon     += OnPlayerReloadingWeapon;
         PlayerHandlers.DroppingItem        += OnPlayerDroppingItem;
     }
@@ -34,7 +34,7 @@ public class ToolGunEventsHandler
     public void Kaldir()
     {
         ServerHandlers.RoundStarted        -= OnRoundStarted;
-        PlayerHandlers.DryFiringWeapon     -= OnPlayerDryFiringWeapon;
+        PlayerHandlers.DryfiringWeapon     -= OnPlayerDryFiringWeapon;
         PlayerHandlers.ReloadingWeapon     -= OnPlayerReloadingWeapon;
         PlayerHandlers.DroppingItem        -= OnPlayerDroppingItem;
     }
@@ -80,7 +80,7 @@ public class ToolGunEventsHandler
         }
     }
 
-    private void OnPlayerDryFiringWeapon(DryFiringWeaponEventArgs ev)
+    private void OnPlayerDryFiringWeapon(DryfiringWeaponEventArgs ev)
     {
         // ToolGun boş ateş → nesne oluştur/sil/seç
         if (!ev.Firearm.IsToolGun(out ToolGunItem toolGun))

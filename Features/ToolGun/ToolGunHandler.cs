@@ -26,9 +26,9 @@ public static class ToolGunHandler
 
 	public static void CreateObject(Vector3 position, ToolGunObjectType objectType, string schematicName = "")
 	{
-		Room room = RoomExtensions.GetRoomAtPosition(position);
+		Room room = Room.Get(position);
 
-		position = room.Name == RoomName.Outside ? position : room.Transform.InverseTransformPoint(position);
+		position = room.RoomName == RoomName.Outside ? position : room.Transform.InverseTransformPoint(position);
 		string roomId = room.GetRoomStringId();
 
 		MapSchematic map = MapUtils.UntitledMap;
@@ -140,7 +140,7 @@ public static class ToolGunHandler
 		return false;
 	}
 
-	public static bool Raycast(Player player, out RaycastHit hit) => Raycast(player.Camera.position, player.Camera.forward, out hit);
+	public static bool Raycast(Player player, out RaycastHit hit) => Raycast(player.CameraTransform.position, player.CameraTransform.forward, out hit);
 
 	public static bool Raycast(Vector3 origin, Vector3 direction, out RaycastHit hit) => Physics.Raycast(origin, direction, out hit, 100f, ToolGunMask.Mask);
 

@@ -13,7 +13,7 @@ using UnityEngine;
 
 // Exiled Locker wrapper
 using ExiledLocker = Exiled.API.Features.Lockers.Locker;
-using ExiledLockerChamber = Exiled.API.Features.Lockers.LockerChamber;
+using ExiledLockerChamber = Exiled.API.Features.Lockers.Chamber;
 
 namespace ProjectMER.Features.Serializable.Lockers;
 

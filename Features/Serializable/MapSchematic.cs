@@ -1,4 +1,5 @@
 using Exiled.API.Features;
+using Exiled.API.Features.Doors;
 using NorthwoodLib.Pools;
 using ProjectMER.Features.Extensions;
 using ProjectMER.Features.Objects;

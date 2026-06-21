@@ -34,7 +34,6 @@ public class PickupEventsHandler
     {
         PlayerHandlers.SearchingPickup  += OnPlayerSearchingPickup;
         PlayerHandlers.PickingUpItem    += OnPlayerPickingUpItem;
-        PlayerHandlers.PickingUpAmmo    += OnPlayerPickingUpAmmo;
     }
 
     /// <summary>
@@ -44,7 +43,6 @@ public class PickupEventsHandler
     {
         PlayerHandlers.SearchingPickup  -= OnPlayerSearchingPickup;
         PlayerHandlers.PickingUpItem    -= OnPlayerPickingUpItem;
-        PlayerHandlers.PickingUpAmmo    -= OnPlayerPickingUpAmmo;
     }
 
     // ---------- Olay işleyicileri ----------
@@ -62,7 +60,7 @@ public class PickupEventsHandler
     private void OnPlayerPickingUpItem(PickingUpItemEventArgs ev)
     {
         // Harita nesnesinin çocuğu olan eşya mı?
-        if (!ev.Pickup.Base.Transform.TryGetComponentInParent(out MapEditorObject _))
+        if (!ev.Pickup.Transform.TryGetComponentInParent(out MapEditorObject _))
             return;
 
         if (!PickupUsesLeft.ContainsKey(ev.Pickup.Serial))
@@ -76,44 +74,31 @@ public class PickupEventsHandler
 
         // Kalan kullanım hakkı varsa yeniden bırak ve envantere ekle
         ev.IsAllowed = false;
-        ev.Pickup.Base.InUse = false;
+        ev.Pickup.InUse = false;
 
-        Item? esya = ev.Player.AddItem(ev.Pickup.Type);
-        if (ev.Pickup is not FirearmPickup silahYeri || esya is not Firearm silah)
-            return;
-
-        // Ateşli silahın ek parça kodunu ve mermisini ayarla
-        silah.Base.ApplyAttachmentsCode(silahYeri.AttachmentsCode, false);
-        if (silah.Base.TryGetModule(out MagazineModule sarjorModulu))
+        if (ev.Pickup is AmmoPickup ammoPickup)
         {
-            sarjorModulu.MagazineInserted = true;
-            sarjorModulu.AmmoStored = sarjorModulu.AmmoMax;
-            sarjorModulu.ServerResyncData();
+            ev.Player.AddAmmo(ammoPickup.AmmoType, ammoPickup.Ammo);
         }
-        else if (silah.Base.TryGetModule(out CylinderAmmoModule silindirModulu))
+        else
         {
-            silindirModulu.ServerModifyAmmo(silindirModulu.AmmoMax);
-            silindirModulu.ServerResync();
+            Item? esya = ev.Player.AddItem(ev.Pickup.Type);
+            if (ev.Pickup is not FirearmPickup silahYeri || esya is not Firearm silah)
+                return;
+
+            // Ateşli silahın ek parça kodunu ve mermisini ayarla
+            silah.Base.ApplyAttachmentsCode(silahYeri.Attachments, false);
+            if (silah.Base.TryGetModule(out MagazineModule sarjorModulu))
+            {
+                sarjorModulu.MagazineInserted = true;
+                sarjorModulu.AmmoStored = sarjorModulu.AmmoMax;
+                sarjorModulu.ServerResyncData();
+            }
+            else if (silah.Base.TryGetModule(out CylinderAmmoModule silindirModulu))
+            {
+                silindirModulu.ServerModifyAmmo(silindirModulu.AmmoMax);
+                silindirModulu.ServerResync();
+            }
         }
-    }
-
-    private void OnPlayerPickingUpAmmo(PickingUpAmmoEventArgs ev)
-    {
-        // Harita nesnesinin çocuğu olan mermi eşyası mı?
-        if (!ev.Pickup.Base.Transform.TryGetComponentInParent(out MapEditorObject _))
-            return;
-
-        if (!PickupUsesLeft.ContainsKey(ev.Pickup.Serial))
-            return;
-
-        if (--PickupUsesLeft[ev.Pickup.Serial] == 0)
-        {
-            PickupUsesLeft.Remove(ev.Pickup.Serial);
-            return;
-        }
-
-        ev.IsAllowed = false;
-        ev.Pickup.Base.InUse = false;
-        ev.Player.AddAmmo(ev.AmmoType, (ushort)ev.Amount);
     }
 }

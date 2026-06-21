@@ -44,7 +44,7 @@ public class SerializableScp079Camera : SerializableObject
 		// Exiled'da Room.List ile Outside odasını alıyoruz
 		if (room == null)
 		{
-			Room? outside = Room.List.FirstOrDefault(r => r.Identifier != null && r.Identifier.Name == RoomName.Outside);
+			Exiled.API.Features.Room? outside = Exiled.API.Features.Room.List.FirstOrDefault(r => r.Identifier != null && r.Identifier.Name == RoomName.Outside);
 			cameraVariant.NetworkRoom = outside?.Identifier;
 		}
 		else

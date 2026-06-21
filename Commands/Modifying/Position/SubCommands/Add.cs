@@ -25,7 +25,7 @@ public class Add : ICommand
 	/// <inheritdoc/>
 	public bool Execute(ArraySegment<string> arguments, ICommandSender sender, out string response)
 	{
-		if (!sender.HasAnyPermission($"mpr.position"))
+		if (!sender.CheckPermission($"mpr.position"))
 		{
 			response = $"Bu komutu yürütmek için yetkiniz yok. Gerekli yetki: mpr.position";
 			return false;

@@ -27,6 +27,7 @@
     <Reference Include="Exiled.API"                      HintPath="$(SL_REFERENCES)\Exiled.API.dll" />
     <Reference Include="Exiled.Events"                   HintPath="$(SL_REFERENCES)\Exiled.Events.dll" />
     <Reference Include="Exiled.Loader"                   HintPath="$(SL_REFERENCES)\Exiled.Loader.dll" />
+    <Reference Include="Exiled.Permissions"              HintPath="$(SL_REFERENCES)\Exiled.Permissions.dll" />
   </ItemGroup>
 
   <ItemGroup>

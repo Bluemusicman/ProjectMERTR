@@ -5,6 +5,7 @@ using NorthwoodLib.Pools;
 using ProjectMER.Configs;
 using ProjectMER.Features;
 using ServerHandlers = Exiled.Events.Handlers.Server;
+using MapHandlers = Exiled.Events.Handlers.Map;
 using WarheadHandlers = Exiled.Events.Handlers.Warhead;
 
 namespace ProjectMER.Events.Handlers.Internal;
@@ -24,7 +25,7 @@ public class ActionOnEventHandlers
     {
         ServerHandlers.WaitingForPlayers  += OnWaitingForPlayers;
         ServerHandlers.RoundStarted       += OnRoundStarted;
-        ServerHandlers.LczDecontaminationStarted += OnLczDecontaminationStarted;
+        MapHandlers.Decontaminating       += OnLczDecontaminationStarted;
         WarheadHandlers.Starting          += OnWarheadStarted;
         WarheadHandlers.Stopping          += OnWarheadStopped;
         WarheadHandlers.Detonating        += OnWarheadDetonated;
@@ -37,7 +38,7 @@ public class ActionOnEventHandlers
     {
         ServerHandlers.WaitingForPlayers  -= OnWaitingForPlayers;
         ServerHandlers.RoundStarted       -= OnRoundStarted;
-        ServerHandlers.LczDecontaminationStarted -= OnLczDecontaminationStarted;
+        MapHandlers.Decontaminating       -= OnLczDecontaminationStarted;
         WarheadHandlers.Starting          -= OnWarheadStarted;
         WarheadHandlers.Stopping          -= OnWarheadStopped;
         WarheadHandlers.Detonating        -= OnWarheadDetonated;
@@ -51,7 +52,7 @@ public class ActionOnEventHandlers
     private void OnRoundStarted()
         => HandleActionList(Config.OnRoundStarted);
 
-    private void OnLczDecontaminationStarted()
+    private void OnLczDecontaminationStarted(Exiled.Events.EventArgs.Map.DecontaminatingEventArgs _)
         => HandleActionList(Config.OnLczDecontaminationStarted);
 
     private void OnWarheadStarted(StartingEventArgs _)
@@ -99,7 +100,7 @@ public class ActionOnEventHandlers
                 case "cs":
                 {
                     // Exiled'da konsol komutu çalıştırma
-                    Exiled.API.Features.Server.RunCommand(arguman);
+                    Exiled.API.Features.Server.ExecuteCommand(arguman);
                     continue;
                 }
 

@@ -6,6 +6,7 @@ using HarmonyLib;
 using MEC;
 using ProjectMER.Configs;
 using ProjectMER.Events.Handlers.Internal;
+using ProjectMER.Features;
 using System.IO;
 using System.Threading;
 
@@ -23,6 +24,8 @@ public class ProjectMER : Plugin<Config>
     /// Eklentinin tekil örneğini alır.
     /// </summary>
     public static ProjectMER Singleton { get; private set; } = null!;
+
+    private CoroutineHandle _autoSaveCoroutine;
 
     /// <summary>
     /// Eklentinin ana klasör yolunu alır.
@@ -109,7 +112,30 @@ public class ProjectMER : Plugin<Config>
             Log.Debug("DosyaSistemİzleyici etkinleştirildi!");
         }
 
+        if (Config!.EnableAutoSave)
+        {
+            _autoSaveCoroutine = Timing.RunCoroutine(AutoSaveCoroutine());
+        }
+
         base.OnEnabled();
+    }
+
+    private IEnumerator<float> AutoSaveCoroutine()
+    {
+        while (true)
+        {
+            yield return Timing.WaitForSeconds(Config.AutoSaveInterval);
+            
+            if (!Config.EnableAutoSave) continue;
+
+            foreach (var mapName in MapUtils.LoadedMaps.Keys.ToList())
+            {
+                if (mapName != MapUtils.UntitledMapName && MapUtils.LoadedMaps[mapName].IsDirty)
+                {
+                    MapUtils.SaveMap(mapName, isAutoSave: true);
+                }
+            }
+        }
     }
 
     public override void OnDisabled()
@@ -133,6 +159,8 @@ public class ProjectMER : Plugin<Config>
 
         Singleton = null!;
 
+        Timing.KillCoroutines(_autoSaveCoroutine);
+        
         base.OnDisabled();
     }
 

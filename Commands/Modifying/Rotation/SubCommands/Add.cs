@@ -25,7 +25,7 @@ public class Add : ICommand
 	/// <inheritdoc/>
 	public bool Execute(ArraySegment<string> arguments, ICommandSender sender, out string response)
 	{
-		if (!sender.HasAnyPermission($"mpr.rotation"))
+		if (!sender.CheckPermission($"mpr.rotation"))
 		{
 			response = $"Bu komutu yürütmek için yetkiniz yok. Gerekli yetki: mpr.rotation";
 			return false;

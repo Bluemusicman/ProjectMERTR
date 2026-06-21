@@ -52,8 +52,6 @@ public class GenericEventsHandler
 
     private void OnPlayerSpawning(SpawningEventArgs ev)
     {
-        if (!ev.IsAllowed)
-            return;
 
         // Harita şematiklerindeki özel doğuş noktaları kontrol edilir
         List<MapEditorObject> liste = [];

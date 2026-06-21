@@ -35,6 +35,18 @@ public class Config : IConfig
     [Description("ToolGun ile nesne oluştururken otomatik seçim yapılıp yapılmayacağını belirtir.")]
     public bool AutoSelect { get; set; } = true;
 
+    [Description("Haritayı belirli aralıklarla otomatik olarak kaydeder.")]
+    public bool EnableAutoSave { get; set; } = true;
+
+    [Description("Otomatik kayıt işleminin kaç saniyede bir yapılacağını belirler (Varsayılan: 300).")]
+    public float AutoSaveInterval { get; set; } = 300f;
+
+    [Description("Harita kaydedilirken otomatik yedekleme alınıp alınmayacağını belirtir.")]
+    public bool EnableAutoBackup { get; set; } = false;
+
+    [Description("Eski yedeklerin silinmeden önce tutulacak maksimum yedek sayısı. (Sınırsız için -1)")]
+    public int MaxBackups { get; set; } = 5;
+
     [Description(
         "\n" +
         "# ----------------------------- Olay Bazlı Eylemler -----------------------------\n" +

@@ -77,7 +77,7 @@ public class ToolGunItem
 		automaticActionModule.Cocked = true;
 		automaticActionModule.ServerResync();
 
-		player.AddAmmo(ItemType.Ammo9x19, 1);
+		player.AddAmmo(Exiled.API.Enums.AmmoType.Nato9, 1);
 
 		ItemDictionary.Add(toolgun.ItemSerial, new ToolGunItem(toolgun));
 
@@ -100,7 +100,7 @@ public class ToolGunItem
 			if (ItemDictionary.ContainsKey(itemBase.ItemSerial))
 			{
 				ItemDictionary.Remove(itemBase.ItemSerial);
-				player.RemoveItem(itemBase);
+				player.RemoveItem(Item.Get(itemBase));
 				return true;
 			}
 		}

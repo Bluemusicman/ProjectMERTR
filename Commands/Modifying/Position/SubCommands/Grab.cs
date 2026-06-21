@@ -23,7 +23,7 @@ public class Grab : ICommand
 
 	public bool Execute(ArraySegment<string> arguments, ICommandSender sender, out string response)
 	{
-		if (!sender.HasAnyPermission($"mpr.position"))
+		if (!sender.CheckPermission($"mpr.position"))
 		{
 			response = $"Bu komutu yürütmek için yetkiniz yok. Gerekli yetki: mpr.position";
 			return false;
@@ -48,7 +48,7 @@ public class Grab : ICommand
 			GrabbingPlayers.Remove(player);
 
 			Room room = mapEditorObject.Room;
-			mapEditorObject.Base.Position = room.Name == MapGeneration.RoomName.Outside ? mapEditorObject.transform.position : mapEditorObject.Room.Transform.InverseTransformPoint(mapEditorObject.transform.position);
+			mapEditorObject.Base.Position = room.RoomName == MapGeneration.RoomName.Outside ? mapEditorObject.transform.position : mapEditorObject.Room.Transform.InverseTransformPoint(mapEditorObject.transform.position);
 			mapEditorObject.UpdateObjectAndCopies();
 
 			response = "Bırakıldı";
@@ -63,9 +63,9 @@ public class Grab : ICommand
 
 	private IEnumerator<float> GrabbingCoroutine(Player player, MapEditorObject mapEditorObject)
 	{
-		Vector3 position = player.Camera.position;
+		Vector3 position = player.CameraTransform.position;
 		float multiplier = Vector3.Distance(position, mapEditorObject.transform.position);
-		Vector3 prevPos = position + (player.Camera.forward * multiplier);
+		Vector3 prevPos = position + (player.CameraTransform.forward * multiplier);
 
 		while (true)
 		{
@@ -74,7 +74,7 @@ public class Grab : ICommand
 			if (mapEditorObject == null || !ToolGunHandler.TryGetSelectedMapObject(player, out _))
 				break;
 
-			Vector3 newPos = mapEditorObject.transform.position = player.Camera.position + (player.Camera.forward * multiplier);
+			Vector3 newPos = mapEditorObject.transform.position = player.CameraTransform.position + (player.CameraTransform.forward * multiplier);
 
 			if (prevPos == newPos)
 				continue;

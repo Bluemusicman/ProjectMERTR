@@ -128,8 +128,8 @@ public static class ToolGunUI
 
 	private static string GetRoomString(Player player)
 	{
-		Room room = RoomExtensions.GetRoomAtPosition(player.Camera.transform.position);
-		List<Room> list = ListPool<Room>.Shared.Rent(Room.List.Where(x => x.Base != null && x.Zone == room.Zone && x.Shape == room.Shape && x.Name == room.Name));
+		Room room = Room.Get(player.CameraTransform.position);
+		List<Room> list = ListPool<Room>.Shared.Rent(Room.List.Where(x => x.Zone == room.Zone && x.RoomShape == room.RoomShape && x.Name == room.Name));
 
 		string roomString;
 		if (list.Count == 1)

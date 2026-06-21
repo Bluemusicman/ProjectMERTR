@@ -1,5 +1,5 @@
 using System;
-using Exiled.Events.Interfaces;
+using Exiled.Events.EventArgs.Interfaces;
 using ProjectMER.Features.Serializable.Schematics;
 
 namespace ProjectMER.Events.Arguments;

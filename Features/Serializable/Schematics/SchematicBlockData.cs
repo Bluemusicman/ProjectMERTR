@@ -1,6 +1,7 @@
 using AdminToys;
 using InventorySystem.Items.Firearms.Attachments;
 using Exiled.API.Features;
+using Exiled.API.Features.Pickups;
 using ProjectMER.Events.Handlers.Internal;
 using ProjectMER.Features.Enums;
 using ProjectMER.Features.Extensions;
@@ -79,7 +80,7 @@ public class SchematicBlockData
 	private GameObject CreateEmpty(bool fallback = false)
 	{
 		if (fallback)
-			Logger.Warn($"{BlockType} henüz uygulanmadı. Nesne bunun yerine boş bir GameObject olacak.");
+			Log.Warn($"{BlockType} henüz uygulanmadı. Nesne bunun yerine boş bir GameObject olacak.");
 
 		PrimitiveObjectToy primitive = GameObject.Instantiate(PrefabManager.PrimitiveObject);
 		primitive.NetworkPrimitiveFlags = PrimitiveFlags.None;
@@ -143,7 +144,7 @@ public class SchematicBlockData
 		if (Properties.TryGetValue("Chance", out object property) && UnityEngine.Random.Range(0, 101) > Convert.ToSingle(property))
 			return new("Empty Pickup");
 
-		Pickup pickup = Pickup.Create((ItemType)Convert.ToInt32(Properties["ItemType"]), Vector3.zero)!;
+		Pickup pickup = Pickup.Create((ItemType)Convert.ToInt32(Properties["ItemType"]))!;
 		if (Properties.ContainsKey("Locked"))
 			PickupEventsHandler.ButtonPickups.Add(pickup.Serial, schematicObject);
 
