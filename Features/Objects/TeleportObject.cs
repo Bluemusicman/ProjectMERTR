@@ -52,7 +52,7 @@ public class TeleportObject : MonoBehaviour
 		// Check BlockedRoles
 		if (Base.BlockedRoles != null && Base.BlockedRoles.Count > 0)
 		{
-			if (Base.BlockedRoles.Contains(player.Role.RoleTypeId))
+			if (Base.BlockedRoles.Any(r => r == player.Role))
 			{
 				deniedReason = Base.DeniedMessage.Length > 0 ? Base.DeniedMessage : "Bu ışınlayıcıyı kullanmak için yetkiniz yok.";
 				return false;
@@ -62,7 +62,7 @@ public class TeleportObject : MonoBehaviour
 		// Check AllowedRoles (whitelist)
 		if (Base.AllowedRoles != null && Base.AllowedRoles.Count > 0)
 		{
-			if (!Base.AllowedRoles.Contains(player.Role.RoleTypeId))
+			if (!Base.AllowedRoles.Any(r => r == player.Role))
 			{
 				deniedReason = Base.DeniedMessage.Length > 0 ? Base.DeniedMessage : "Bu ışınlayıcıyı kullanmak için yetkiniz yok.";
 				return false;
@@ -75,7 +75,11 @@ public class TeleportObject : MonoBehaviour
 			bool hasKeycard = false;
 			foreach (ItemBase item in player.Inventory.UserInventory.Items.Values)
 			{
-				if (item is not KeycardItem keycard)
+				if (item is not InventorySystem.Items.Keycards.KeycardItem gameKeycard)
+					continue;
+
+				var keycard = LabApi.Features.Wrappers.KeycardItem.Get(gameKeycard);
+				if (keycard == null)
 					continue;
 
 				if (Base.AllowedKeycards == null || Base.AllowedKeycards.Count == 0)
@@ -88,7 +92,7 @@ public class TeleportObject : MonoBehaviour
 				// Check if keycard has any of the required permissions
 				foreach (DoorPermissionFlags required in Base.AllowedKeycards)
 				{
-					if ((keycard.Detail.Permissions & required) != 0)
+					if ((keycard.Permissions & required) != 0)
 					{
 						hasKeycard = true;
 						break;

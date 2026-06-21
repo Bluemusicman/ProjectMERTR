@@ -11,6 +11,18 @@ public class Config
 	[Description("ToolGun ile nesne oluştururken otomatik seçim yapılıp yapılmayacağını belirtir.")]
 	public bool AutoSelect { get; set; } = true;
 
+	[Description("Haritayı belirli aralıklarla otomatik olarak kaydeder.")]
+	public bool EnableAutoSave { get; set; } = true;
+
+	[Description("Otomatik kayıt işleminin kaç saniyede bir yapılacağını belirler (Varsayılan: 300).")]
+	public float AutoSaveInterval { get; set; } = 300f;
+
+	[Description("Harita kaydedilirken otomatik yedekleme alınıp alınmayacağını belirtir.")]
+	public bool EnableAutoBackup { get; set; } = false;
+
+	[Description("Eski yedeklerin silinmeden önce tutulacak maksimum yedek sayısı. (Sınırsız için -1)")]
+	public int MaxBackups { get; set; } = 5;
+
 	[Description(
 	"\n" +
 	"# ----------------------------- Olay Bazlı Eylemler -----------------------------\n" +
@@ -64,8 +76,7 @@ public class Config
 	[Description("Oyuncu sayısına göre otomatik harita yükleme kuralları.")]
 	public List<MapRotationRule> MapRotationRules { get; set; } = [];
 
-	[Description("Otomatik yedekleme sistemini etkinleştirir.")]
-	public bool EnableAutoBackup { get; set; } = false;
+
 
 	[Description("Yedekleme sıklığı (saniye cinsinden). Varsayılan 300 saniye (5 dakika).")]
 	public int AutoBackupInterval { get; set; } = 300;

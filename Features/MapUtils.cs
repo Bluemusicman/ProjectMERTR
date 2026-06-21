@@ -14,7 +14,7 @@ public static class MapUtils
 
 	public static Dictionary<string, MapSchematic> LoadedMaps { get; private set; } = [];
 
-	public static void SaveMap(string mapName)
+	public static void SaveMap(string mapName, bool isAutoSave = false)
 	{
 		if (mapName == UntitledMapName)
 			throw new InvalidOperationException("This map name is reserved for internal use!");
@@ -33,11 +33,35 @@ public static class MapUtils
 		}
 
 		string path = Path.Combine(ProjectMER.MapsDir, $"{mapName}.yml");
+
+		if (ProjectMER.Singleton.Config.EnableAutoBackup && File.Exists(path))
+		{
+			string backupsDir = Path.Combine(ProjectMER.MapsDir, "Backups", mapName);
+			if (!Directory.Exists(backupsDir))
+				Directory.CreateDirectory(backupsDir);
+
+			string backupPath = Path.Combine(backupsDir, $"{mapName}_{DateTime.Now:yyyyMMdd_HHmmss}.yml");
+			File.Copy(path, backupPath);
+
+			if (ProjectMER.Singleton.Config.MaxBackups > 0)
+			{
+				var files = new DirectoryInfo(backupsDir).GetFiles("*.yml").OrderByDescending(f => f.CreationTime).ToList();
+				if (files.Count > ProjectMER.Singleton.Config.MaxBackups)
+				{
+					for (int i = ProjectMER.Singleton.Config.MaxBackups; i < files.Count; i++)
+						files[i].Delete();
+				}
+			}
+		}
+
 		File.WriteAllText(path, YamlParser.Serializer.Serialize(map));
 		map.IsDirty = false;
 
-		UnloadMap(UntitledMapName);
-		LoadMap(mapName);
+		if (!isAutoSave)
+		{
+			UnloadMap(UntitledMapName);
+			LoadMap(mapName);
+		}
 	}
 
 	public static void LoadMap(string mapName)

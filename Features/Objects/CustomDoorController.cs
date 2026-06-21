@@ -60,9 +60,9 @@ public class CustomDoorController : MonoBehaviour
 		}
 	}
 
-	private void OnStateChanged(DoorVariant door, bool open)
+	private void OnStateChanged()
 	{
-		if (open && Base.AutoCloseDelay > 0)
+		if (_doorVariant != null && _doorVariant.NetworkTargetState && Base.AutoCloseDelay > 0)
 		{
 			Timing.CallDelayed(Base.AutoCloseDelay, () =>
 			{

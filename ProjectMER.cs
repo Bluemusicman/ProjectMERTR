@@ -16,7 +16,9 @@ public class ProjectMER : Plugin<Config>
 	private Harmony _harmony;
 	private FileSystemWatcher _mapFileSystemWatcher;
 
-	public static ProjectMER Singleton { get; private set; }
+	public static ProjectMER Singleton { get; private set; } = null!;
+
+	private CoroutineHandle _autoSaveCoroutine;
 
 	/// <summary>
 	/// Gets the MapEditorReborn parent folder path.
@@ -43,6 +45,11 @@ public class ProjectMER : Plugin<Config>
 
 	public override void Enable()
 	{
+		if (Config!.EnableAutoSave)
+		{
+			_autoSaveCoroutine = Timing.RunCoroutine(AutoSaveCoroutine());
+		}
+
 		Singleton = this;
 		_harmony = new Harmony($"michal78900.mapEditorReborn-{DateTime.Now.Ticks}");
 		_harmony.PatchAll();
@@ -94,6 +101,24 @@ public class ProjectMER : Plugin<Config>
 		Features.AutoBackup.AutoBackupManager.Start();
 	}
 
+	private IEnumerator<float> AutoSaveCoroutine()
+	{
+		while (true)
+		{
+			yield return Timing.WaitForSeconds(Config.AutoSaveInterval);
+			
+			if (!Config.EnableAutoSave) continue;
+
+			foreach (var mapName in MapUtils.LoadedMaps.Keys.ToList())
+			{
+				if (mapName != MapUtils.UntitledMapName && MapUtils.LoadedMaps[mapName].IsDirty)
+				{
+					MapUtils.SaveMap(mapName, isAutoSave: true);
+				}
+			}
+		}
+	}
+
 	private void OnMapFileChanged(object _, FileSystemEventArgs ev)
 	{
 		string mapName = ev.Name.Split('.')[0];
@@ -115,6 +140,8 @@ public class ProjectMER : Plugin<Config>
 
 	public override void Disable()
 	{
+		Timing.KillCoroutines(_autoSaveCoroutine);
+
 		Singleton = null!;
 		_harmony.UnpatchAll();
 
@@ -131,7 +158,7 @@ public class ProjectMER : Plugin<Config>
 
 	public override string Name => "ProjectMER";
 
-	public override string Description => "MER LabAPI - Harita Editörü Yeniden Doğdu";
+	public override string Description => "MER LabAPI";
 
 	public override string Author => "souin";
 

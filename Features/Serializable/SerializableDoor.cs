@@ -1,8 +1,10 @@
+using Interactables.Interobjects;
 using Interactables.Interobjects.DoorUtils;
 using LabApi.Features.Wrappers;
 using Mirror;
 using ProjectMER.Features.Enums;
 using ProjectMER.Features.Extensions;
+using ProjectMER.Features.Objects;
 using UnityEngine;
 
 namespace ProjectMER.Features.Serializable;
@@ -60,9 +62,10 @@ public class SerializableDoor : SerializableObject
 		doorVariant.NetworkTargetState = IsOpen;
 		doorVariant.ServerChangeLock(DoorLockReason.SpecialDoorFeature, IsLocked);
 		doorVariant.RequiredPermissions = new DoorPermissionsPolicy(RequiredPermissions, RequireAll);
-		if (doorVariant is BreakableDoor breakable && Health > 0)
+		var breakable = doorVariant.GetComponent<Interactables.Interobjects.BreakableDoor>();
+		if (breakable != null && Health > 0)
 		{
-			breakable.RemainingHp = Health;
+			breakable.RemainingHealth = Health;
 		}
 	}
 
